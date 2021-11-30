@@ -1,0 +1,447 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div id="modalCrearEditar" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
+    <div class="modal-dialog mw-100 w-90" style="width: 90%;">
+        <div class="modal-content">
+            <form onsubmit="guardar(event)" class="producto">
+
+                <div class="modal-header">
+                    <h4 class="modal-title">Crear/Editar</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="nombreProducto"> Nombre </label>
+                                <input type="text" onkeyup="producto[this.name] = this.value" name="nombreProducto" class="form-control" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="precioProducto"> Precio </label>
+                                <input type="number" onkeyup="producto[this.name] = this.value" name="precioProducto" class="form-control" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="imagenProducto"> Imagen </label>
+                                <input type="text" onkeyup="producto[this.name] = this.value" name="imagenProducto" class="form-control" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="stockProducto"> Stock </label>
+                                <input type="number" onkeyup="producto[this.name] = this.value" name="stockProducto" class="form-control" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="categoria"> Categoría </label>
+                                <div>
+                                    <input type="text" style="display: none; width: 100%;" class="form-control" />
+
+                                    <select id="productoCategoria" name="categoria" class="form-control">
+                                        <option value=""> - Seleccione - </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- Fin <div class="row"> --> 
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"> Guardar </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> Cancelar </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div>
+
+    <br />
+    <button name="crear" onclick="crearNuevo(); $('#modalCrearEditar').modal('show')" class="btn btn-success"> <span>+</span> Agregar Nuevo Producto </button> <br />
+
+    <br /><br />
+    <!-- Filtro busqueda -->
+
+    <div id="filtro-busqueda" class="row">
+
+        <div class="col-md-4">
+            <div class="form-group">
+
+                <label class="control-label" for="nombreProducto"> Nombre </label>
+                <input nombre="nombreProducto" onkeyup="resetearPaginacion(); obtenerListaPrincipal()" type="text" class="form-control" />
+
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+
+                <label class="control-label" for="categoria"> Categoría </label>
+                <div>
+                    <input type="text" style="display: none; width: 100%;" class="form-control" />
+
+                    <select id="buscadorCategoria" nombre="categoriaId" class="form-control">
+                        <option value=""> -Todos- </option>
+                    </select>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fin filtro busqueda -->
+
+    <br />
+    <h4> Listado de Producto </h4>
+
+    <!-- Inicio nav paginacion -->
+    <br />
+
+    <div id="nav_paginacion" style="display: none">
+        <div class="row">
+            <div class="col-md-1">
+                <button id="btn_pagina_anterior" onclick="paginaActual = paginaActual - 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                    <span> < </span> Anterior
+                </button>
+            </div>
+            <div class="col-md-1">
+                <button id="btn_pagina_siguiente" onclick="paginaActual = paginaActual + 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                    Siguiente <span> > </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <br />
+    <!-- Fin nav paginacion -->
+
+    <div class="table-responsive">
+        <!-- Contenedor para que la tabla sea responsiva -->
+        <table id="tablaPrincipal" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th> Id </th>
+                    <th> Precio </th>
+                    <th> Imagen </th>
+                    <th> Stock </th>
+                    <th> Nombre </th>
+                    <th> Categoría </th>
+                    <th> </th>
+                    <th> </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>  <!-- Fin Contenedor para que la tabla sea responsiva -->
+</div>
+
+<script>
+
+    let operacion = "";   // La primera operacion es listar
+    let producto = {};
+    let paginaActual = 0;    // Atributo opcional en caso de usar Paginación
+    let totalPaginas = 0;    // Atributo opcional en caso de usar Paginación
+
+
+    document.addEventListener("DOMContentLoaded", () =>  // Al cargar la pagina
+    {
+        // Buscar Productos por Categoria
+        selectBuscador({
+            querySelector: "#buscadorCategoria",
+            url: "@Url.Action("LlenarSelect2", "Categoria")",
+            //params: { },
+            registrosPorPagina: { nombre: "registrosPorPagina", valor: 10 },
+            nombrePagina: "numeroPagina", nombreBusqueda: "busqueda", mensajeBuscando: "buscando resultados ...",
+            onchange: () => {
+                resetearPaginacion();  obtenerListaPrincipal();
+            }
+        });
+
+        // Guardar Categoria del Producto
+        selectBuscador({
+            querySelector: "#productoCategoria",
+            url: "@Url.Action("LlenarSelect2", "Categoria")",
+            //params: { },
+            registrosPorPagina: { nombre: "registrosPorPagina", valor: 10 },
+            nombrePagina: "numeroPagina", nombreBusqueda: "busqueda", mensajeBuscando: "buscando resultados ...",
+            onchange: () => {
+                //console.log("El valor seleccionado es: " + event.target["value"]);
+                producto.categoria.categoriaId = event.target.value;
+                console.log("El texto del option seleccionado es:", event.target.options[event.target.selectedIndex].text);
+            }
+        });
+
+        obtenerListaPrincipal();
+    });
+
+    const obtenerConsultaBuscador = () => {
+        var consulta = {};
+        var filtroBusqueda = document.getElementById("filtro-busqueda");
+
+        if (filtroBusqueda != null) {
+            Array.from(filtroBusqueda.querySelectorAll("input, select"))
+                .filter(c => c.getAttribute("nombre") != null && !["", null].includes(c.value))  // Filtra por nombre y value no nulos
+                .forEach(c => {
+                    if (c.hasAttribute("fecha"))  // En caso de ser un datepicker propio, usa la fecha en formato yyyy-MM-dd
+                        consulta[c.getAttribute("nombre")] = c.getAttribute("fecha");
+                    else
+                        consulta[c.getAttribute("nombre")] = c.value;
+                });
+        }
+
+        return consulta;
+    }
+
+    const obtenerListaPrincipal = async () =>  // Obtener lista de Producto de la Web Api
+    {
+        var registrosPorPagina = 10;
+        var inicio = paginaActual * registrosPorPagina;
+
+        var consulta = obtenerConsultaBuscador();
+        consulta["start"] = inicio;                 // Datos para paginacion
+        consulta["length"] = registrosPorPagina;    // Datos para paginacion
+
+        var parametros = Object.entries(consulta).map(c => c.join("=")).join("&");
+
+        mostrarLoadingSpinner();
+
+        await fetch("@Url.Action("LlenarDataTable", "Producto")?" + parametros, {
+            method: "GET"
+            //headers: {"Authorization": "Bearer ejemploToken"}
+        })
+        .then(response => {
+            if (response.ok) {
+                response.json().then(data => {
+                    totalPaginas = Math.ceil(parseInt(data["recordsTotal"]) / registrosPorPagina) - 1;
+
+                    if (totalPaginas > 0) {
+                        // Habilitar o desabilitar botones de navegacion para la paginacion
+                        document.getElementById("nav_paginacion").style.display = "block";
+                        document.getElementById("btn_pagina_anterior").disabled = (paginaActual == 0) ? true : false;
+                        document.getElementById("btn_pagina_siguiente").disabled = (paginaActual >= totalPaginas) ? true : false;
+                    }
+                    else {
+                        document.getElementById("nav_paginacion").style.display = "none";
+                    }
+
+                    var tabla = document.getElementById("tablaPrincipal").getElementsByTagName("tbody")[0];
+                    tabla.innerHTML = "";   // Limpia la tabla
+
+                    data["data"].reverse().forEach((c, index) => {
+                        var fila = tabla.insertRow(0);
+                        fila.insertCell(0).innerHTML = c.productoId;
+                        fila.insertCell(1).innerHTML = c.precioProducto;
+                        fila.insertCell(2).innerHTML = c.imagenProducto;
+                        fila.insertCell(3).innerHTML = c.stockProducto;
+                        fila.insertCell(4).innerHTML = c.nombreProducto;
+                        fila.insertCell(5).innerHTML = JSON.stringify(c.categoria);
+                        fila.insertCell(6).innerHTML = "<a href='' onclick='editar(event, " + c.productoId + ")'> Editar </a>";
+                        fila.insertCell(7).innerHTML = "<a href='javascript:;' onclick='eliminar(" + c.productoId + ")'> Eliminar </a>";
+
+                    });
+                });
+            }
+            else {
+                response.text().then(textoError =>
+                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                        textoError : `Error ${response.status}`)
+                );
+            }
+        })
+        .catch(error => {
+            alert("Se encontro un error");
+        })
+        .finally(c => {
+            ocultarLoadingSpinner();
+        });
+    }
+
+    const resetearPaginacion = () => {
+        paginaActual = 0;
+        totalPaginas = 0;
+    }
+
+    const construirObjeto = () =>  // Colocar los valores del objeto de tipo Producto en el html
+    {
+        Object.entries(producto).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))  // No incluye referencias cruzadas en caso de que las tenga
+            .forEach(([nombreAtributo, valorAtributo]) => {
+                var elementoHTML = document.querySelector(`.producto [name="${nombreAtributo}"]`);
+
+                if (elementoHTML != null)
+                {
+                    if (valorAtributo instanceof Object)  // Si es una foreign key
+                    {
+                        if (nombreAtributo == "categoria")
+                        {
+                            elementoHTML.textContent = "";    // Borra todos los options del select
+                            var nuevoOption = document.createElement("option");
+
+                            if (valorAtributo.categoriaId != null && valorAtributo.categoriaId != "") {
+                                nuevoOption.selected = true;
+                                nuevoOption.text = valorAtributo.nombre;
+                                nuevoOption.value = valorAtributo.categoriaId;
+                            }
+                            else {
+                                nuevoOption.text = "- Seleccione -";
+                                nuevoOption.value = "";
+                            }
+                            elementoHTML.appendChild(nuevoOption);   // Agrega el nuevo option al select
+                        }
+                    }
+                    else {
+                        elementoHTML.value = valorAtributo;  // Coloca los valores del objeto en cada elemento del form
+                    }
+                }
+            });
+
+    }
+
+    const crearNuevo = () =>  // Iniciar creación de nuevo Producto
+    {
+        producto = {
+            precioProducto: "",
+            imagenProducto: "",
+            stockProducto: "",
+            nombreProducto: "",
+            categoria: { "categoriaId": null },  // Foreign key
+        };
+
+        operacion = "crear";
+        construirObjeto();
+    }
+
+    const validar = (producto) =>  // Validar Producto
+    {
+
+        // Se validan los atributos de la entidad
+
+        if (["", null].includes(producto.precioProducto)) return "El campo precio no posee un valor";
+        if (["", null].includes(producto.stockProducto)) return "El campo stock no posee un valor";
+        if (["", null].includes(producto.nombreProducto)) return "El campo nombre no posee un valor";
+        if (["", null].includes(producto.categoria["categoriaId"])) return "El campo de tipo Categoria no está seleccionado";
+
+        return "";
+    }
+
+    const guardar = async (evento) =>  // Guardar y Actualizar Producto en la Web Api
+    {
+        evento.preventDefault();
+        var validacion = validar(producto);
+        if (validacion != "") return alert(validacion);
+
+        //var nombreAction = (operacion == "crear") ? "guardar" : "actualizar";
+
+        mostrarLoadingSpinner();
+
+        await fetch("@Url.Action("Guardar", "Producto")", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },  // headers: {"Authorization": "Bearer ejemploToken"}
+            body: JSON.stringify(producto)
+        })
+        .then(response => {
+            if (response.ok) {
+                obtenerListaPrincipal();               // Se actualiza la lista de Producto llamando la Web Api
+                $("#modalCrearEditar").modal("hide");  // Cierra el modal
+            }
+            else {
+                response.text().then(textoError =>
+                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                        textoError : `Error ${response.status}`)
+                );
+            }
+        })
+        .catch(error => {
+            alert("Se encontro un error");
+        })
+        .finally(c => {
+            ocultarLoadingSpinner();
+        });
+    }
+
+    const editar = async (evento, id) =>  // Obtener Producto de la Web Api por su id
+    {
+        evento.preventDefault();
+
+        mostrarLoadingSpinner();
+
+        await fetch("@Url.Action("BuscarPorId", "Producto")/" + id, {
+            method: "GET"
+            //headers: {"Authorization": "Bearer ejemploToken"}
+        })
+        .then(response => {
+            if (response.ok) {
+                response.json().then(data => {
+                    operacion = "editar";
+                    producto = data;
+
+                    // Asignar atributo toString a objeto(s) padre(s)
+
+                    var categoria = producto["categoria"];
+                    producto["categoria"]["toString"] = JSON.stringify(categoria["categoriaId"]);  // Al objeto padre de tipo Categoria le agrega el atributo toString
+
+                    construirObjeto();
+                    $("#modalCrearEditar").modal("show");
+                });
+            }
+            else {
+                response.text().then(textoError =>
+                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                        textoError : `Error ${response.status}`)
+                );
+            }
+        })
+        .catch(error => {
+            alert("Se encontro un error");
+        })
+        .finally(c => {
+            ocultarLoadingSpinner();
+        });
+    }
+
+    const eliminar = async (id) =>  // Eliminar Producto por su id
+    {
+        var opcionConfirm = confirm("Desea realmente eliminar este registro");
+        if (opcionConfirm == true) {
+            mostrarLoadingSpinner();
+
+            await fetch(`@Url.Action("Eliminar", "Producto")?id=${id}`, {
+                method: "POST",
+                //headers: {"Authorization": "Bearer ejemploToken"}
+            })
+            .then(response => {
+                if (response.ok) {
+                    obtenerListaPrincipal();  // Se actualiza la lista de Producto llamando la Web Api
+                }
+                else {
+                    response.text().then(textoError =>
+                        alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                            textoError : `Error ${response.status}`)
+                    );
+                }
+            })
+            .catch(error => {
+                alert("Se encontro un error");
+            })
+            .finally(c => {
+                ocultarLoadingSpinner();
+            });
+        }
+    }
+
+</script>
+
+
+

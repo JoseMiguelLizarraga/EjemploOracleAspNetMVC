@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="Model.Store" Provider="Oracle.ManagedDataAccess.Client" ProviderManifestToken="11.2" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="CATEGORIA">
+          <Key>
+            <PropertyRef Name="CATEGORIA_ID" />
+          </Key>
+          <Property Name="CATEGORIA_ID" Type="number" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="NOMBRE" Type="varchar2" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="PRODUCTO">
+          <Key>
+            <PropertyRef Name="PRODUCTO_ID" />
+          </Key>
+          <Property Name="PRODUCTO_ID" Type="number" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="NOMBRE_PRODUCTO" Type="varchar2" MaxLength="100" />
+          <Property Name="PRECIO_PRODUCTO" Type="number" Precision="38" Scale="0" />
+          <Property Name="STOCK_PRODUCTO" Type="number" Precision="38" Scale="0" />
+          <Property Name="IMAGEN_PRODUCTO" Type="varchar2" MaxLength="200" />
+          <Property Name="CATEGORIA_ID" Type="number" Precision="38" Scale="0" />
+        </EntityType>
+        <EntityType Name="USUARIO">
+          <Key>
+            <PropertyRef Name="USER_ID" />
+          </Key>
+          <Property Name="USER_ID" Type="number" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="EMAIL" Type="varchar2" MaxLength="200" />
+          <Property Name="PASSWORD" Type="varchar2" MaxLength="200" />
+          <Property Name="ULTIMA_CONEXION" Type="timestamp" Precision="6" />
+        </EntityType>
+        <Association Name="SYS_C009396">
+          <End Role="CATEGORIA" Type="Self.CATEGORIA" Multiplicity="0..1" />
+          <End Role="PRODUCTO" Type="Self.PRODUCTO" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CATEGORIA">
+              <PropertyRef Name="CATEGORIA_ID" />
+            </Principal>
+            <Dependent Role="PRODUCTO">
+              <PropertyRef Name="CATEGORIA_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="PRODUCTO_ACTUALIZAR" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="OFFICEMARKET">
+          <Parameter Name="V_ID" Type="number" Mode="In" />
+          <Parameter Name="V_NOMBRE" Type="varchar2" Mode="In" />
+          <Parameter Name="V_PRECIO" Type="varchar2" Mode="In" />
+          <Parameter Name="V_STOCK" Type="number" Mode="In" />
+          <Parameter Name="V_IMAGEN" Type="varchar2" Mode="In" />
+          <Parameter Name="V_CATEGORIA_ID" Type="number" Mode="In" />
+        </Function>
+        <Function Name="PRODUCTO_ELIMINAR" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="OFFICEMARKET">
+          <Parameter Name="V_ID" Type="number" Mode="In" />
+        </Function>
+        <Function Name="PRODUCTO_INSERTAR" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="OFFICEMARKET">
+          <Parameter Name="V_NOMBRE" Type="varchar2" Mode="In" />
+          <Parameter Name="V_PRECIO" Type="varchar2" Mode="In" />
+          <Parameter Name="V_STOCK" Type="number" Mode="In" />
+          <Parameter Name="V_IMAGEN" Type="varchar2" Mode="In" />
+          <Parameter Name="V_CATEGORIA_ID" Type="number" Mode="In" />
+          <Parameter Name="ID_GENERADO" Type="number" Mode="Out" />
+        </Function>
+        <EntityContainer Name="ModelStoreContainer">
+          <EntitySet Name="CATEGORIA" EntityType="Self.CATEGORIA" Schema="OFFICEMARKET" store:Type="Tables" />
+          <EntitySet Name="PRODUCTO" EntityType="Self.PRODUCTO" Schema="OFFICEMARKET" store:Type="Tables" />
+          <EntitySet Name="USUARIO" EntityType="Self.USUARIO" Schema="OFFICEMARKET" store:Type="Tables" />
+          <AssociationSet Name="SYS_C009396" Association="Self.SYS_C009396">
+            <End Role="CATEGORIA" EntitySet="CATEGORIA" />
+            <End Role="PRODUCTO" EntitySet="PRODUCTO" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="Model" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="CATEGORIA">
+          <Key>
+            <PropertyRef Name="CATEGORIA_ID" />
+          </Key>
+          <Property Name="CATEGORIA_ID" Type="Decimal" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="NOMBRE" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="PRODUCTO" Relationship="Self.SYS_C009383" FromRole="CATEGORIA" ToRole="PRODUCTO" />
+        </EntityType>
+        <EntityType Name="PRODUCTO">
+          <Key>
+            <PropertyRef Name="PRODUCTO_ID" />
+          </Key>
+          <Property Name="PRODUCTO_ID" Type="Decimal" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="NOMBRE_PRODUCTO" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="PRECIO_PRODUCTO" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="STOCK_PRODUCTO" Type="Decimal" Precision="38" Scale="0" />
+          <Property Name="IMAGEN_PRODUCTO" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="CATEGORIA_ID" Type="Decimal" Precision="38" Scale="0" />
+          <NavigationProperty Name="CATEGORIA" Relationship="Self.SYS_C009383" FromRole="PRODUCTO" ToRole="CATEGORIA" />
+        </EntityType>
+        <EntityType Name="USUARIO">
+          <Key>
+            <PropertyRef Name="USER_ID" />
+          </Key>
+          <Property Name="USER_ID" Type="Decimal" Precision="38" Scale="0" Nullable="false" />
+          <Property Name="EMAIL" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PASSWORD" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="ULTIMA_CONEXION" Type="DateTime" Precision="6" />
+        </EntityType>
+        <Association Name="SYS_C009383">
+          <End Role="CATEGORIA" Type="Self.CATEGORIA" Multiplicity="0..1" />
+          <End Role="PRODUCTO" Type="Self.PRODUCTO" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CATEGORIA">
+              <PropertyRef Name="CATEGORIA_ID" />
+            </Principal>
+            <Dependent Role="PRODUCTO">
+              <PropertyRef Name="CATEGORIA_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="Entities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="CATEGORIA" EntityType="Self.CATEGORIA" />
+          <EntitySet Name="PRODUCTO" EntityType="Self.PRODUCTO" />
+          <EntitySet Name="USUARIO" EntityType="Self.USUARIO" />
+          <AssociationSet Name="SYS_C009383" Association="Self.SYS_C009383">
+            <End Role="CATEGORIA" EntitySet="CATEGORIA" />
+            <End Role="PRODUCTO" EntitySet="PRODUCTO" />
+          </AssociationSet>
+          <FunctionImport Name="SP_CREATE_CATEGORIA">
+          <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="SP_CREATE_PRODUCTO">
+            <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
+            <Parameter Name="V_PRECIO" Mode="In" Type="String" />
+            <Parameter Name="V_STOCK" Mode="In" Type="Decimal" />
+            <Parameter Name="V_IMAGEN" Mode="In" Type="String" />
+            <Parameter Name="V_CATEGORIA_ID" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="SP_DELETE_CATEGORIA">
+          <Parameter Name="V_ID" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="SP_DELETE_PRODUCTO">
+          <Parameter Name="V_ID" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="SP_UPDATE_CATEGORIA">
+            <Parameter Name="V_ID" Mode="In" Type="Decimal" />
+            <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="SP_UPDATE_PRODUCTO">
+            <Parameter Name="V_ID" Mode="In" Type="Decimal" />
+            <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
+            <Parameter Name="V_PRECIO" Mode="In" Type="String" />
+            <Parameter Name="V_STOCK" Mode="In" Type="Decimal" />
+            <Parameter Name="V_IMAGEN" Mode="In" Type="String" />
+            <Parameter Name="V_CATEGORIA_ID" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="PRODUCTO_INSERTAR">
+            <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
+            <Parameter Name="V_PRECIO" Mode="In" Type="String" />
+            <Parameter Name="V_STOCK" Mode="In" Type="Decimal" />
+            <Parameter Name="V_IMAGEN" Mode="In" Type="String" />
+            <Parameter Name="V_CATEGORIA_ID" Mode="In" Type="Decimal" />
+            <Parameter Name="ID_GENERADO" Mode="Out" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="PRODUCTO_ACTUALIZAR">
+            <Parameter Name="V_ID" Mode="In" Type="Decimal" />
+            <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
+            <Parameter Name="V_PRECIO" Mode="In" Type="String" />
+            <Parameter Name="V_STOCK" Mode="In" Type="Decimal" />
+            <Parameter Name="V_IMAGEN" Mode="In" Type="String" />
+            <Parameter Name="V_CATEGORIA_ID" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="PRODUCTO_ELIMINAR">
+          <Parameter Name="V_ID" Mode="In" Type="Decimal" />
+          </FunctionImport>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="ModelStoreContainer" CdmEntityContainer="Entities">
+          <EntitySetMapping Name="CATEGORIA">
+            <EntityTypeMapping TypeName="Model.CATEGORIA">
+              <MappingFragment StoreEntitySet="CATEGORIA">
+                <ScalarProperty Name="CATEGORIA_ID" ColumnName="CATEGORIA_ID" />
+                <ScalarProperty Name="NOMBRE" ColumnName="NOMBRE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PRODUCTO">
+            <EntityTypeMapping TypeName="Model.PRODUCTO">
+              <MappingFragment StoreEntitySet="PRODUCTO">
+                <ScalarProperty Name="PRODUCTO_ID" ColumnName="PRODUCTO_ID" />
+                <ScalarProperty Name="NOMBRE_PRODUCTO" ColumnName="NOMBRE_PRODUCTO" />
+                <ScalarProperty Name="PRECIO_PRODUCTO" ColumnName="PRECIO_PRODUCTO" />
+                <ScalarProperty Name="STOCK_PRODUCTO" ColumnName="STOCK_PRODUCTO" />
+                <ScalarProperty Name="IMAGEN_PRODUCTO" ColumnName="IMAGEN_PRODUCTO" />
+                <ScalarProperty Name="CATEGORIA_ID" ColumnName="CATEGORIA_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="USUARIO">
+            <EntityTypeMapping TypeName="Model.USUARIO">
+              <MappingFragment StoreEntitySet="USUARIO">
+                <ScalarProperty Name="USER_ID" ColumnName="USER_ID" />
+                <ScalarProperty Name="EMAIL" ColumnName="EMAIL" />
+                <ScalarProperty Name="PASSWORD" ColumnName="PASSWORD" />
+                <ScalarProperty Name="ULTIMA_CONEXION" ColumnName="ULTIMA_CONEXION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="PRODUCTO_INSERTAR" FunctionName="Model.Store.PRODUCTO_INSERTAR" />
+          <FunctionImportMapping FunctionImportName="PRODUCTO_ACTUALIZAR" FunctionName="Model.Store.PRODUCTO_ACTUALIZAR" />
+          <FunctionImportMapping FunctionImportName="PRODUCTO_ELIMINAR" FunctionName="Model.Store.PRODUCTO_ELIMINAR" />
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="true" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="Ninguno" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

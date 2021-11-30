@@ -1,0 +1,327 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div id="modalCrearEditar" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
+    <div class="modal-dialog mw-100 w-90" style="width: 90%;">
+        <div class="modal-content">
+            <form onsubmit="guardar(event)" class="categoria">
+
+                <div class="modal-header">
+                    <h4 class="modal-title">Crear/Editar</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="nombre"> nombre </label>
+                                <input type="text" onkeyup="categoria[this.name] = this.value" name="nombre" class="form-control" autocomplete="off" />
+                            </div>
+                        </div>
+
+                    </div> <!-- Fin <div class="row"> -->
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"> Guardar </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> Cancelar </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div>
+
+    <br />
+    <button name="crear" onclick="crearNuevo(); $('#modalCrearEditar').modal('show')" class="btn btn-success"> <span>+</span> Agregar Nueva Categoría </button> <br />
+
+    <br /><br />
+    <!-- Filtro busqueda -->
+
+    <div id="filtro-busqueda" class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+
+                <label class="control-label" for="nombre"> nombre </label>
+                <input nombre="nombre" onkeyup="resetearPaginacion(); obtenerListaPrincipal()" type="text" class="form-control" />
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Fin filtro busqueda -->
+
+    <br />
+    <h4> Listado de Categoria </h4>
+
+    <!-- Inicio nav paginacion -->
+    <br />
+
+    <div id="nav_paginacion" style="display: none">
+        <div class="row">
+            <div class="col-md-1">
+                <button id="btn_pagina_anterior" onclick="paginaActual = paginaActual - 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                    <span> < </span> Anterior
+                </button>
+            </div>
+            <div class="col-md-1">
+                <button id="btn_pagina_siguiente" onclick="paginaActual = paginaActual + 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                    Siguiente <span> > </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <br />
+    <!-- Fin nav paginacion -->
+
+    <div class="table-responsive">
+        <table id="tablaPrincipal" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th> Id </th>
+                    <th> Nombre </th>
+                    <th> </th>
+                    <th> </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div> 
+</div>
+
+<script>
+
+    let operacion = "";   // La primera operacion es listar
+    let categoria = {};
+    let paginaActual = 0;    // Paginación
+    let totalPaginas = 0;    // Paginación
+
+    document.addEventListener("DOMContentLoaded", () =>  // Al cargar la pagina
+    {
+        obtenerListaPrincipal();
+    });
+
+    const obtenerConsultaBuscador = () =>
+    {
+        var consulta = {};
+        var filtroBusqueda = document.getElementById("filtro-busqueda");
+
+        if (filtroBusqueda != null)
+        {
+            Array.from(filtroBusqueda.querySelectorAll("input, select"))
+            .filter(c => c.getAttribute("nombre") != null && !["", null].includes(c.value))  // Filtra por nombre y value no nulos
+            .forEach(c => {
+                consulta[c.getAttribute("nombre")] = c.value;
+            });
+        }
+
+        return consulta;
+    }
+
+    const obtenerListaPrincipal = async () =>  // Obtener lista de Categoria de la Web Api
+    {
+        var registrosPorPagina = 10;
+        var inicio = paginaActual * registrosPorPagina;
+
+        var consulta = obtenerConsultaBuscador();
+        consulta["start"] = inicio;                 // Datos para paginacion
+        consulta["length"] = registrosPorPagina;    // Datos para paginacion
+
+        var parametros = Object.entries(consulta).map(c => c.join("=")).join("&");
+
+        mostrarLoadingSpinner();
+
+        await fetch("@Url.Action("LlenarDataTable", "Categoria")?" + parametros, {
+            method: "GET"
+        })
+        .then(response => 
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
+                    totalPaginas = Math.ceil(parseInt(data["recordsTotal"]) / registrosPorPagina) - 1;
+
+                    if (totalPaginas > 0) {
+                        // Habilitar o desabilitar botones de navegacion para la paginacion
+                        document.getElementById("nav_paginacion").style.display = "block";
+                        document.getElementById("btn_pagina_anterior").disabled = (paginaActual == 0) ? true : false;
+                        document.getElementById("btn_pagina_siguiente").disabled = (paginaActual >= totalPaginas) ? true : false;
+                    }
+                    else {
+                        document.getElementById("nav_paginacion").style.display = "none";
+                    }
+
+                    var tabla = document.getElementById("tablaPrincipal").getElementsByTagName("tbody")[0];
+                    tabla.innerHTML = "";   // Limpia la tabla
+
+                    data["data"].reverse().forEach((c, index) => {
+                        var fila = tabla.insertRow(0);
+                        fila.insertCell(0).innerHTML = c.categoriaId;
+                        fila.insertCell(1).innerHTML = c.nombre;
+                        fila.insertCell(2).innerHTML = "<a href='' onclick='editar(event, " + c.categoriaId + ")'> Editar </a>";
+                        fila.insertCell(3).innerHTML = "<a href='javascript:;' onclick='eliminar(" + c.categoriaId + ")'> Eliminar </a>";
+
+                    });
+                });
+            }
+            else {
+                response.text().then(textoError =>
+                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                        textoError : `Error ${response.status}`)
+                );
+            }
+        })
+        .catch(error => {
+            alert("Se encontro un error");
+        })
+        .finally(c => {
+            ocultarLoadingSpinner();
+        });
+    }
+
+    const resetearPaginacion = () => {
+        paginaActual = 0;
+        totalPaginas = 0;
+    }
+
+    const construirObjeto = () =>  // Colocar los valores del objeto de tipo Categoria en el html
+    {
+        Object.entries(categoria).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))  // No incluye referencias cruzadas en caso de que las tenga
+        .forEach(([nombreAtributo, valorAtributo]) => {
+            var elementoHTML = document.querySelector(`.categoria [name="${nombreAtributo}"]`);
+
+            if (elementoHTML != null) {
+                elementoHTML.value = valorAtributo;  // Coloca los valores del objeto en cada elemento del form
+            }
+        });
+    }
+
+    const crearNuevo = () =>  // Iniciar creación de nuevo Categoria
+    {
+        categoria = {
+            nombre: ""
+        };
+
+        operacion = "crear";
+        construirObjeto();
+    }
+
+    const validar = (categoria) =>  // Validar Categoria
+    {
+        // Se validan los atributos de la entidad
+
+        if (["", null].includes(categoria.nombre)) return "El campo nombre no posee un valor";
+        return "";
+    }
+
+    const guardar = async (evento) =>  // Guardar y Actualizar Categoria en la Web Api
+    {
+        evento.preventDefault();
+        var validacion = validar(categoria);
+        if (validacion != "") return alert(validacion);
+
+        mostrarLoadingSpinner();
+
+        await fetch("@Url.Action("Guardar", "Categoria")", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(categoria)
+        })
+        .then(response => {
+            if (response.ok) {
+                obtenerListaPrincipal();               // Se actualiza la lista de Categoria llamando la Web Api
+                $("#modalCrearEditar").modal("hide");  // Cierra el modal
+            }
+            else {
+                response.text().then(textoError =>
+                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                        textoError : `Error ${response.status}`)
+                );
+            }
+        })
+        .catch(error => {
+            alert("Se encontro un error");
+        })
+        .finally(c => {
+            ocultarLoadingSpinner();
+        });
+    }
+
+    const editar = async (evento, id) =>  // Obtener Categoria de la Web Api por su id
+    {
+        evento.preventDefault();
+
+        mostrarLoadingSpinner();
+
+        await fetch("@Url.Action("BuscarPorId", "Categoria")/" + id, {
+            method: "GET"
+        })
+        .then(response => {
+            if (response.ok) {
+                response.json().then(data => {
+                    operacion = "editar";
+                    categoria = data;
+
+                    construirObjeto();
+                    $("#modalCrearEditar").modal("show");
+                });
+            }
+            else {
+                response.text().then(textoError =>
+                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                        textoError : `Error ${response.status}`)
+                );
+            }
+        })
+        .catch(error => {
+            alert("Se encontro un error");
+        })
+        .finally(c => {
+            ocultarLoadingSpinner();
+        });
+    }
+
+    const eliminar = async (id) =>  // Eliminar Categoria por su id
+    {
+        var opcionConfirm = confirm("Desea realmente eliminar este registro");
+
+        if (opcionConfirm == true)
+        {
+            mostrarLoadingSpinner();
+
+            await fetch(`@Url.Action("Eliminar", "Categoria")?id=${id}`, {
+                method: "POST"
+            })
+            .then(response => {
+                if (response.ok) {
+                    obtenerListaPrincipal();  // Se actualiza la lista de Categoria llamando la Web Api
+                }
+                else {
+                    response.text().then(textoError =>
+                        alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
+                            textoError : `Error ${response.status}`)
+                    );
+                }
+            })
+            .catch(error => {
+                alert("Se encontro un error");
+            })
+            .finally(c => {
+                ocultarLoadingSpinner();
+            });
+        }
+    }
+
+</script>
+
+
