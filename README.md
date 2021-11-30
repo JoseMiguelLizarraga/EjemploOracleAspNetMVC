@@ -14,16 +14,16 @@ de dependencias por el proyecto WebApp. La capa Util posee herramientas para val
 
 # Pasos para utilizar el proyecto
 
-## 1- Crear el usuario
+## Crear el usuario en Oracle
 
 Utilizar el archivo crear_usuario_officemarket.sql que está en la carpeta Archivos SQL
 
-## 1- Crear las tablas, secuencias, triggers, procedimientos almacenados e insertar algunos registros
+## Crear las tablas, secuencias, triggers, procedimientos almacenados e insertar algunos registros
 
 Utilizar el archivo script_officemarket.sql que está en la carpeta Archivos SQL
 
 ## Reemplazar la cadena de conexion a oracle
 
-La cadena de conexión debe cambiarse dentro de la solución en: <br /> 
+La cadena de conexión debe ser reemplazada dentro de la solución en: <br /> 
 DataAccess\App.Config <br />
 WebApp\Web.config <br />
