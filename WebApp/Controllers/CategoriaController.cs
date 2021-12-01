@@ -13,6 +13,7 @@ using WebApp.Util;
 
 namespace WebApp.Controllers
 {
+    [Authorize]
     public class CategoriaController : Controller
     {
         ICategoriaService _servicio;

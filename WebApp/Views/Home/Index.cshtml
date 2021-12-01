@@ -3,6 +3,16 @@
     ViewBag.Title = "Index";
 }
 
-<h2>Inicio</h2>
-<p> Bienvenido a nuestro sistema de productos de oficina </p>
+@if (User.Identity.IsAuthenticated)
+{
+    <h2>Bienvenido</h2>
+    <p> Para utilizar la aplicación es necesario usar el menú de navegación </p>
+}
+else
+{
+    <h2>Inicio</h2>
+    <p> Para utilizar la aplicación es necesario iniciar sesión </p>
+}
+
+
 

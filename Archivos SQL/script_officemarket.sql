@@ -65,7 +65,7 @@ insert into producto(nombre_producto, precio_producto, stock_producto, imagen_pr
 values('Silla oficina mecanica', 89990, 2000, null, 2);
 
 insert into producto(nombre_producto, precio_producto, stock_producto, imagen_producto, categoria_id)
-values('Escritorio terminación cuero', 539990, 10, null, 1);
+values('Escritorio terminaciï¿½n cuero', 539990, 10, null, 1);
 
 insert into producto(nombre_producto, precio_producto, stock_producto, imagen_producto, categoria_id)
 values('posit', 1990, 3000, null, 3);

@@ -1,0 +1,23 @@
+﻿@model WebApp.Models.Usuario
+@{
+    ViewBag.Title = "Login";
+}
+
+<h2>Ingresa tus credenciales</h2>
+
+@* Este formulario envia los datos por defecto al mismo controlador (AuthController) *@
+
+@using (Html.BeginForm())
+{
+    @Html.LabelFor(u => u.Email, "Correo electrónico")
+    @Html.TextBoxFor(u => u.Email, new { type = "email" })
+    <br />
+    @Html.LabelFor(u => u.Password, "Contraseña")
+    @Html.PasswordFor(u => u.Password);
+    <br />
+
+    <button>Ingresar</button>
+}
+<br />
+
+@TempData["mensaje"]

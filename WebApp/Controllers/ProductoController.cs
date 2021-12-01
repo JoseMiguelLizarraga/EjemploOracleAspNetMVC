@@ -12,6 +12,7 @@ using Mappings.DTO;
 
 namespace WebApp.Controllers
 {
+    [Authorize]
     public class ProductoController : Controller
     {
         private IProductoService _servicio;

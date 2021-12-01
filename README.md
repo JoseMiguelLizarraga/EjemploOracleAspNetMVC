@@ -2,7 +2,12 @@
 # Aplicación web desarrollada en ASP.NET MVC 5, Entity Framework, Razor y Oracle 11g Express Edition
 
 Incluye un mantenedor de categorías y otro de productos. Ambos mantenedores poseen un mecanismo de paginación backend, pero solo el de productos 
-utiliza procedimientos almacenados a la hora de insertar, actualizar y eliminar.
+utiliza procedimientos almacenados a la hora de insertar, actualizar y eliminar. También posee una autenticación de usuario básica que no
+ocupa base de datos <br /><br />
+
+Credenciales de acceso: <br />
+Email: admin@admin.cl <br />
+Password: admin
 
 # Características
 
