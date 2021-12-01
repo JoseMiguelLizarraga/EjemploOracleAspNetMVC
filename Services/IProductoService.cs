@@ -1,5 +1,5 @@
 ﻿using DataAccess;
-using Mappings;
+using Mappings.DTO;
 using System.Collections.Generic;
 
 namespace Services

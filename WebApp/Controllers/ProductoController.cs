@@ -8,6 +8,7 @@ using Mappings;
 using DataAccess;
 using System.Net;
 using WebApp.Util;
+using Mappings.DTO;
 
 namespace WebApp.Controllers
 {
@@ -33,7 +34,7 @@ namespace WebApp.Controllers
             if (result.Objeto != null)
                 return new JsonCamelCaseResult(result.Objeto.Select(Mapper.ToDTO).ToList(), JsonRequestBehavior.AllowGet);
             else
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound, "No se encontraron resultados");
+                return Json(new { status = result.ExcepcionCapturada.Status, error = "No se encontraron resultados" });
         }
 
         [HttpGet]
@@ -43,12 +44,8 @@ namespace WebApp.Controllers
 
             if (result.Objeto != null)
                 return new JsonCamelCaseResult(result.Objeto, JsonRequestBehavior.AllowGet);
-
-            else if (result.ExcepcionCapturada.Status == 400)
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, result.ExcepcionCapturada.MensajeError);
-
             else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
         }
 
         [HttpGet]
@@ -58,31 +55,35 @@ namespace WebApp.Controllers
 
             if (result.Objeto != null)
                 return new JsonCamelCaseResult(result.Objeto.ToDTO(), JsonRequestBehavior.AllowGet);
-
-            else if (result.ExcepcionCapturada.Status == 400)
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, result.ExcepcionCapturada.MensajeError);
-
             else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
         }
 
         [HttpPost]
         public ActionResult Guardar(ProductoDTO dto)
         {
-            PRODUCTO producto = dto.ToDatabaseObject();
-            RespuestaService<PRODUCTO> result;
+            int status = 200;   // Status OK  
+            ProductoDTO objeto = null;
 
-            result = (producto.PRODUCTO_ID == 0) ?
-                _servicio.Guardar(producto) : _servicio.Actualizar(producto);
+            if (ModelState.IsValid)
+            {
+                PRODUCTO producto = dto.ToDatabaseObject();
+                RespuestaService<PRODUCTO> result;
 
-            if (result.Objeto != null)
-                return new JsonCamelCaseResult(result.Objeto.ToDTO(), JsonRequestBehavior.AllowGet);
+                result = (producto.PRODUCTO_ID == 0) ?
+                    _servicio.Guardar(producto) : _servicio.Actualizar(producto);
 
-            else if (result.ExcepcionCapturada.Status == 400)
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, result.ExcepcionCapturada.MensajeError);
+                if (result.Objeto != null)
+                    objeto = result.Objeto.ToDTO();
+                else
+                {
+                    status = result.ExcepcionCapturada.Status;
+                    ModelState.AddModelError(string.Empty, result.ExcepcionCapturada.MensajeError);
+                }
+            }
+            else status = 400;  // Bad Request
 
-            else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+            return Json(new { objeto, status, errores = ModelState.Values.SelectMany(x => x.Errors).Select(x => new { error = x.ErrorMessage }) });
         }
 
         [HttpPost]
@@ -93,7 +94,7 @@ namespace WebApp.Controllers
             if (result.EsValido)
                 return new HttpStatusCodeResult(HttpStatusCode.OK);
             else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
         }
     }
 }

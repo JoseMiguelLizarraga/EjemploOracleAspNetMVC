@@ -150,15 +150,16 @@
 
 <script>
 
-    let operacion = "";   // La primera operacion es listar
+    let operacion = "";         // La primera operacion es listar
     let producto = {};
-    let paginaActual = 0;    // Atributo opcional en caso de usar Paginación
-    let totalPaginas = 0;    // Atributo opcional en caso de usar Paginación
+    let paginaActual = 0;       // Paginación
+    let totalPaginas = 0;       // Paginación
 
 
     document.addEventListener("DOMContentLoaded", () =>  // Al cargar la pagina
     {
         // Buscar Productos por Categoria
+
         selectBuscador({
             querySelector: "#buscadorCategoria",
             url: "@Url.Action("LlenarSelect2", "Categoria")",
@@ -171,6 +172,7 @@
         });
 
         // Guardar Categoria del Producto
+
         selectBuscador({
             querySelector: "#productoCategoria",
             url: "@Url.Action("LlenarSelect2", "Categoria")",
@@ -178,34 +180,29 @@
             registrosPorPagina: { nombre: "registrosPorPagina", valor: 10 },
             nombrePagina: "numeroPagina", nombreBusqueda: "busqueda", mensajeBuscando: "buscando resultados ...",
             onchange: () => {
-                //console.log("El valor seleccionado es: " + event.target["value"]);
                 producto.categoria.categoriaId = event.target.value;
-                console.log("El texto del option seleccionado es:", event.target.options[event.target.selectedIndex].text);
+                producto.categoria.nombre = event.target.options[event.target.selectedIndex].text;  // Esto es para que no de problemas la validacion backend
             }
         });
 
         obtenerListaPrincipal();
     });
 
-    const obtenerConsultaBuscador = () => {
+    const obtenerConsultaBuscador = () =>
+    {
         var consulta = {};
         var filtroBusqueda = document.getElementById("filtro-busqueda");
 
         if (filtroBusqueda != null) {
             Array.from(filtroBusqueda.querySelectorAll("input, select"))
-                .filter(c => c.getAttribute("nombre") != null && !["", null].includes(c.value))  // Filtra por nombre y value no nulos
-                .forEach(c => {
-                    if (c.hasAttribute("fecha"))  // En caso de ser un datepicker propio, usa la fecha en formato yyyy-MM-dd
-                        consulta[c.getAttribute("nombre")] = c.getAttribute("fecha");
-                    else
-                        consulta[c.getAttribute("nombre")] = c.value;
-                });
+            .filter(c => c.getAttribute("nombre") != null && !["", null].includes(c.value))  // Filtra por nombre y value no nulos
+            .forEach(c => consulta[c.getAttribute("nombre")] = c.value );
         }
 
         return consulta;
     }
 
-    const obtenerListaPrincipal = async () =>  // Obtener lista de Producto de la Web Api
+    const obtenerListaPrincipal = async () =>  // Obtener lista de Productos
     {
         var registrosPorPagina = 10;
         var inicio = paginaActual * registrosPorPagina;
@@ -218,13 +215,13 @@
 
         mostrarLoadingSpinner();
 
-        await fetch("@Url.Action("LlenarDataTable", "Producto")?" + parametros, {
-            method: "GET"
-            //headers: {"Authorization": "Bearer ejemploToken"}
-        })
-        .then(response => {
-            if (response.ok) {
-                response.json().then(data => {
+        await fetch("@Url.Action("LlenarDataTable", "Producto")?" + parametros, { method: "GET" })
+        .then(response => 
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
                     totalPaginas = Math.ceil(parseInt(data["recordsTotal"]) / registrosPorPagina) - 1;
 
                     if (totalPaginas > 0) {
@@ -254,12 +251,6 @@
                     });
                 });
             }
-            else {
-                response.text().then(textoError =>
-                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                        textoError : `Error ${response.status}`)
-                );
-            }
         })
         .catch(error => {
             alert("Se encontro un error");
@@ -277,7 +268,8 @@
     const construirObjeto = () =>  // Colocar los valores del objeto de tipo Producto en el html
     {
         Object.entries(producto).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))  // No incluye referencias cruzadas en caso de que las tenga
-            .forEach(([nombreAtributo, valorAtributo]) => {
+        .forEach(([nombreAtributo, valorAtributo]) => 
+        {
                 var elementoHTML = document.querySelector(`.producto [name="${nombreAtributo}"]`);
 
                 if (elementoHTML != null)
@@ -316,7 +308,7 @@
             imagenProducto: "",
             stockProducto: "",
             nombreProducto: "",
-            categoria: { "categoriaId": null },  // Foreign key
+            categoria: { "categoriaId": null },
         };
 
         operacion = "crear";
@@ -325,42 +317,38 @@
 
     const validar = (producto) =>  // Validar Producto
     {
-
-        // Se validan los atributos de la entidad
-
-        if (["", null].includes(producto.precioProducto)) return "El campo precio no posee un valor";
-        if (["", null].includes(producto.stockProducto)) return "El campo stock no posee un valor";
-        if (["", null].includes(producto.nombreProducto)) return "El campo nombre no posee un valor";
         if (["", null].includes(producto.categoria["categoriaId"])) return "El campo de tipo Categoria no está seleccionado";
-
         return "";
     }
 
-    const guardar = async (evento) =>  // Guardar y Actualizar Producto en la Web Api
+    const guardar = async (evento) =>  // Guardar y Actualizar Producto
     {
         evento.preventDefault();
         var validacion = validar(producto);
         if (validacion != "") return alert(validacion);
 
-        //var nombreAction = (operacion == "crear") ? "guardar" : "actualizar";
-
         mostrarLoadingSpinner();
 
         await fetch("@Url.Action("Guardar", "Producto")", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },  // headers: {"Authorization": "Bearer ejemploToken"}
+            headers: { "Content-Type": "application/json" },  
             body: JSON.stringify(producto)
         })
-        .then(response => {
-            if (response.ok) {
-                obtenerListaPrincipal();               // Se actualiza la lista de Producto llamando la Web Api
-                $("#modalCrearEditar").modal("hide");  // Cierra el modal
-            }
-            else {
-                response.text().then(textoError =>
-                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                        textoError : `Error ${response.status}`)
-                );
+        .then(response => 
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
+                    if (data.status == 200)
+                    {
+                        obtenerListaPrincipal();               // Se actualiza la lista de Categoria llamando la Web Api
+                        $("#modalCrearEditar").modal("hide");  // Cierra el modal
+                    }
+                    else {
+                        alert( Array.from(data.errores, c => c.error).join(". \n") );
+                    }
+                });
             }
         })
         .catch(error => {
@@ -371,36 +359,25 @@
         });
     }
 
-    const editar = async (evento, id) =>  // Obtener Producto de la Web Api por su id
+    const editar = async (evento, id) =>  // Obtener Producto por su id
     {
         evento.preventDefault();
-
         mostrarLoadingSpinner();
 
         await fetch("@Url.Action("BuscarPorId", "Producto")/" + id, {
             method: "GET"
-            //headers: {"Authorization": "Bearer ejemploToken"}
         })
-        .then(response => {
-            if (response.ok) {
-                response.json().then(data => {
+        .then(response => 
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
                     operacion = "editar";
                     producto = data;
-
-                    // Asignar atributo toString a objeto(s) padre(s)
-
-                    var categoria = producto["categoria"];
-                    producto["categoria"]["toString"] = JSON.stringify(categoria["categoriaId"]);  // Al objeto padre de tipo Categoria le agrega el atributo toString
-
                     construirObjeto();
                     $("#modalCrearEditar").modal("show");
                 });
-            }
-            else {
-                response.text().then(textoError =>
-                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                        textoError : `Error ${response.status}`)
-                );
             }
         })
         .catch(error => {
@@ -418,18 +395,12 @@
             mostrarLoadingSpinner();
 
             await fetch(`@Url.Action("Eliminar", "Producto")?id=${id}`, {
-                method: "POST",
-                //headers: {"Authorization": "Bearer ejemploToken"}
+                method: "POST"
             })
-            .then(response => {
+            .then(response => 
+            {
                 if (response.ok) {
                     obtenerListaPrincipal();  // Se actualiza la lista de Producto llamando la Web Api
-                }
-                else {
-                    response.text().then(textoError =>
-                        alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                            textoError : `Error ${response.status}`)
-                    );
                 }
             })
             .catch(error => {

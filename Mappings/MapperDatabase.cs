@@ -1,4 +1,5 @@
 ﻿using DataAccess;
+using Mappings.DTO;
 
 namespace Mappings
 {

@@ -1,5 +1,6 @@
 ﻿using DataAccess;
 using Mappings;
+using Mappings.DTO;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -116,6 +117,10 @@ namespace Services
             try
             {
                 CATEGORIA p = _context.CATEGORIA.FirstOrDefault(c => c.CATEGORIA_ID == id);
+
+                _context.PRODUCTO.Where(c => c.CATEGORIA_ID == id).ToList().ForEach(producto => {
+                    _context.Entry(producto).State = EntityState.Deleted;
+                });
 
                 _context.Entry(p).State = EntityState.Deleted;
                 _context.SaveChanges();

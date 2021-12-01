@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using DataAccess;
 using Mappings;
+using Mappings.DTO;
 using Services;
 using WebApp.Util;
 
@@ -35,7 +37,7 @@ namespace WebApp.Controllers
                 return Json(new { Total = retorno.Total, Results = retorno.Results }, JsonRequestBehavior.AllowGet);
             }
             else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
         }
 
         [HttpGet]
@@ -46,7 +48,7 @@ namespace WebApp.Controllers
             if (result.Objeto != null)
                 return new JsonCamelCaseResult(result.Objeto, JsonRequestBehavior.AllowGet);
             else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
         }
 
         [HttpGet]
@@ -56,31 +58,35 @@ namespace WebApp.Controllers
 
             if (result.Objeto != null)
                 return new JsonCamelCaseResult(result.Objeto.ToDTO(), JsonRequestBehavior.AllowGet);
-
-            else if (result.ExcepcionCapturada.Status == 400)
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, result.ExcepcionCapturada.MensajeError);
-
             else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
         }
 
         [HttpPost]
         public ActionResult Guardar(CategoriaDTO dto)
         {
-            CATEGORIA categoria = dto.ToDatabaseObject();
-            RespuestaService<CATEGORIA> result;
+            int status = 200;   // Status OK  
+            CategoriaDTO objeto = null;
 
-            result = (categoria.CATEGORIA_ID == 0) ?
-                _servicio.Guardar(categoria) : _servicio.Actualizar(categoria);
+            if (ModelState.IsValid)
+            {
+                CATEGORIA categoria = dto.ToDatabaseObject();
+                RespuestaService<CATEGORIA> result;
 
-            if (result.Objeto != null)
-                return new JsonCamelCaseResult(result.Objeto.ToDTO(), JsonRequestBehavior.AllowGet);
+                result = (categoria.CATEGORIA_ID == 0) ?
+                    _servicio.Guardar(categoria) : _servicio.Actualizar(categoria);
 
-            else if (result.ExcepcionCapturada.Status == 400)
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, result.ExcepcionCapturada.MensajeError);
+                if (result.Objeto != null)
+                    objeto = result.Objeto.ToDTO();
+                else
+                {
+                    status = result.ExcepcionCapturada.Status;
+                    ModelState.AddModelError(string.Empty, result.ExcepcionCapturada.MensajeError);
+                }
+            }
+            else status = 400;  // Bad Request
 
-            else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+            return Json(new { objeto, status, errores = ModelState.Values.SelectMany(x => x.Errors).Select(x => new { error = x.ErrorMessage }) });
         }
 
         [HttpPost]
@@ -91,7 +97,7 @@ namespace WebApp.Controllers
             if (result.EsValido)
                 return new HttpStatusCodeResult(HttpStatusCode.OK);
             else
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, result.ExcepcionCapturada.MensajeError);
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
         }
     }
 }

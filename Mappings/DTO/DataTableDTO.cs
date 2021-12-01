@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Mappings
+namespace Mappings.DTO
 {
     public class DataTableDTO
     {

@@ -100,10 +100,10 @@
 
 <script>
 
-    let operacion = "";   // La primera operacion es listar
+    let operacion = "";         // La primera operacion es listar
     let categoria = {};
-    let paginaActual = 0;    // Paginación
-    let totalPaginas = 0;    // Paginación
+    let paginaActual = 0;       // Paginación
+    let totalPaginas = 0;       // Paginación
 
     document.addEventListener("DOMContentLoaded", () =>  // Al cargar la pagina
     {
@@ -119,15 +119,13 @@
         {
             Array.from(filtroBusqueda.querySelectorAll("input, select"))
             .filter(c => c.getAttribute("nombre") != null && !["", null].includes(c.value))  // Filtra por nombre y value no nulos
-            .forEach(c => {
-                consulta[c.getAttribute("nombre")] = c.value;
-            });
+            .forEach(c => consulta[c.getAttribute("nombre")] = c.value);
         }
 
         return consulta;
     }
 
-    const obtenerListaPrincipal = async () =>  // Obtener lista de Categoria de la Web Api
+    const obtenerListaPrincipal = async () =>  // Obtener lista de Categorias
     {
         var registrosPorPagina = 10;
         var inicio = paginaActual * registrosPorPagina;
@@ -140,9 +138,7 @@
 
         mostrarLoadingSpinner();
 
-        await fetch("@Url.Action("LlenarDataTable", "Categoria")?" + parametros, {
-            method: "GET"
-        })
+        await fetch("@Url.Action("LlenarDataTable", "Categoria")?" + parametros, { method: "GET" })
         .then(response => 
         {
             if (response.ok)
@@ -174,12 +170,6 @@
                     });
                 });
             }
-            else {
-                response.text().then(textoError =>
-                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                        textoError : `Error ${response.status}`)
-                );
-            }
         })
         .catch(error => {
             alert("Se encontro un error");
@@ -196,7 +186,7 @@
 
     const construirObjeto = () =>  // Colocar los valores del objeto de tipo Categoria en el html
     {
-        Object.entries(categoria).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))  // No incluye referencias cruzadas en caso de que las tenga
+        Object.entries(categoria).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))
         .forEach(([nombreAtributo, valorAtributo]) => {
             var elementoHTML = document.querySelector(`.categoria [name="${nombreAtributo}"]`);
 
@@ -206,7 +196,7 @@
         });
     }
 
-    const crearNuevo = () =>  // Iniciar creación de nuevo Categoria
+    const crearNuevo = () =>  // Iniciar creación de nueva Categoria
     {
         categoria = {
             nombre: ""
@@ -216,20 +206,9 @@
         construirObjeto();
     }
 
-    const validar = (categoria) =>  // Validar Categoria
-    {
-        // Se validan los atributos de la entidad
-
-        if (["", null].includes(categoria.nombre)) return "El campo nombre no posee un valor";
-        return "";
-    }
-
-    const guardar = async (evento) =>  // Guardar y Actualizar Categoria en la Web Api
+    const guardar = async (evento) =>  // Guardar y Actualizar Categoria
     {
         evento.preventDefault();
-        var validacion = validar(categoria);
-        if (validacion != "") return alert(validacion);
-
         mostrarLoadingSpinner();
 
         await fetch("@Url.Action("Guardar", "Categoria")", {
@@ -237,16 +216,21 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(categoria)
         })
-        .then(response => {
-            if (response.ok) {
-                obtenerListaPrincipal();               // Se actualiza la lista de Categoria llamando la Web Api
-                $("#modalCrearEditar").modal("hide");  // Cierra el modal
-            }
-            else {
-                response.text().then(textoError =>
-                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                        textoError : `Error ${response.status}`)
-                );
+        .then(response => 
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
+                    if (data.status == 200)
+                    {
+                        obtenerListaPrincipal();               // Se actualiza la lista de Categorias
+                        $("#modalCrearEditar").modal("hide");  // Cierra el modal
+                    }
+                    else {
+                        alert( Array.from(data.errores, c => c.error).join(". \n") );
+                    }
+                });
             }
         })
         .catch(error => {
@@ -257,30 +241,26 @@
         });
     }
 
-    const editar = async (evento, id) =>  // Obtener Categoria de la Web Api por su id
+    const editar = async (evento, id) =>  // Obtener Categoria por su id
     {
         evento.preventDefault();
-
         mostrarLoadingSpinner();
 
         await fetch("@Url.Action("BuscarPorId", "Categoria")/" + id, {
             method: "GET"
         })
-        .then(response => {
-            if (response.ok) {
-                response.json().then(data => {
+        .then(response => 
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
                     operacion = "editar";
                     categoria = data;
 
                     construirObjeto();
                     $("#modalCrearEditar").modal("show");
                 });
-            }
-            else {
-                response.text().then(textoError =>
-                    alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                        textoError : `Error ${response.status}`)
-                );
             }
         })
         .catch(error => {
@@ -302,15 +282,10 @@
             await fetch(`@Url.Action("Eliminar", "Categoria")?id=${id}`, {
                 method: "POST"
             })
-            .then(response => {
+            .then(response => 
+            {
                 if (response.ok) {
-                    obtenerListaPrincipal();  // Se actualiza la lista de Categoria llamando la Web Api
-                }
-                else {
-                    response.text().then(textoError =>
-                        alert((response.status == 400 || response.status == 500 && ![null, ""].includes(textoError)) ?
-                            textoError : `Error ${response.status}`)
-                    );
+                    obtenerListaPrincipal();  // Se actualiza la lista de Categorias
                 }
             })
             .catch(error => {
