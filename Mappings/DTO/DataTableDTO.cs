@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace Mappings.DTO
 {
-    public class DataTableDTO
+    public class DataTableDTO<T>
     {
         public int RecordsFiltered { get; set; }
         public int RecordsTotal { get; set; }
-        public object Data { get; set; }
+        public List<T> Data { get; set; }
     }
 }

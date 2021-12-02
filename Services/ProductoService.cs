@@ -9,16 +9,19 @@ using System.Data.Objects;
 using Util;
 using Mappings.DTO;
 using Mappings;
+using System.Configuration;
 
 namespace Services
 {
     public class ProductoService : IProductoService
     {
         private Entities _context;
+        private string _rutaImagenes;
 
         public ProductoService()
         {
             _context = new Entities();
+            _rutaImagenes = ConfigurationManager.AppSettings["rutaImagenesProductos"];  // Se encuentra en el Web.config
         }
 
         public RespuestaService<PRODUCTO> BuscarPorId(int id)
@@ -32,7 +35,7 @@ namespace Services
             return new RespuestaService<List<PRODUCTO>>() { Objeto = _context.PRODUCTO.ToList() };
         }
 
-        public RespuestaService<DataTableDTO> LlenarDataTable(PRODUCTO producto, int inicio, int registrosPorPagina)
+        public RespuestaService<DataTableDTO<ProductoDTO>> LlenarDataTable(PRODUCTO producto, int inicio, int registrosPorPagina)
         {
             try
             {
@@ -52,9 +55,9 @@ namespace Services
 
                 List<PRODUCTO> lista = v.ToList();
 
-                return new RespuestaService<DataTableDTO>()
+                return new RespuestaService<DataTableDTO<ProductoDTO>>()
                 {
-                    Objeto = new DataTableDTO()
+                    Objeto = new DataTableDTO<ProductoDTO>()
                     {
                         RecordsFiltered = totalRegistros,
                         RecordsTotal = totalRegistros,
@@ -64,7 +67,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                return new RespuestaService<DataTableDTO>() { ExcepcionCapturada = ExcepcionesHelper.ObtenerExcepcion(ex) };
+                return new RespuestaService<DataTableDTO<ProductoDTO>>() { ExcepcionCapturada = ExcepcionesHelper.ObtenerExcepcion(ex) };
             }
         }
 
@@ -101,7 +104,16 @@ namespace Services
         {
             try
             {
+                PRODUCTO p = _context.PRODUCTO.FirstOrDefault(c => c.PRODUCTO_ID == id);
+                string Foto = p.IMAGEN_PRODUCTO;    // 20.png
+
                 _context.PRODUCTO_ELIMINAR(id);
+
+                string rutaFoto = $"{_rutaImagenes}/{Foto}";  // C:\temp\20.png
+
+                if (System.IO.File.Exists(rutaFoto))
+                    System.IO.File.Delete(rutaFoto);
+
                 return new RespuestaService<bool>() { EsValido = true };
             }
             catch (Exception ex)
@@ -110,5 +122,37 @@ namespace Services
             }
         }
 
+        public void ActualizarFotoProducto(decimal productoId, string extensionArchivo)
+        {
+            PRODUCTO producto = _context.PRODUCTO.FirstOrDefault(c => c.PRODUCTO_ID == productoId);
+            producto.IMAGEN_PRODUCTO = $"{productoId}.png";
+
+            _context.Entry(producto).State = EntityState.Modified;
+            _context.SaveChanges();
+        }
+
+        public bool EliminarFoto(int productoId)
+        {
+            try
+            {
+                PRODUCTO producto = _context.PRODUCTO.FirstOrDefault(c => c.PRODUCTO_ID == productoId);
+                string foto = producto.IMAGEN_PRODUCTO;
+                producto.IMAGEN_PRODUCTO = null;
+
+                _context.Entry(producto).State = EntityState.Modified;
+                _context.SaveChanges();
+
+                string ruta = $"{_rutaImagenes}/{foto}";  // C:\temp\20.png
+
+                if (System.IO.File.Exists(ruta))
+                    System.IO.File.Delete(ruta);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

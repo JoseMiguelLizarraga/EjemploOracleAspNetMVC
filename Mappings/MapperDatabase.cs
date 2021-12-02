@@ -28,7 +28,7 @@ namespace Mappings
                 NOMBRE_PRODUCTO = dto.NombreProducto,
                 PRECIO_PRODUCTO = dto.PrecioProducto,
                 STOCK_PRODUCTO = dto.StockProducto,
-                IMAGEN_PRODUCTO = dto.ImagenProducto,
+                IMAGEN_PRODUCTO = dto.RutaImagenProducto,
                 CATEGORIA_ID = dto.Categoria != null ? dto.Categoria.CategoriaId : dto.CategoriaId,
                 //CATEGORIA = dto.Categoria.ToDatabaseObject(),   // Esto daría problemas, ya que intenta crear una nueva categoria
             };

@@ -1,0 +1,53 @@
+﻿
+@model List<Mappings.DTO.ProductoDTO>
+
+
+<style>
+    table {
+        width: 100%;
+        border: 1px solid black;
+    }
+
+    thead {
+        background-color: black;
+        color: white
+    }
+
+    td, th {
+        padding: 5px;
+        font-size: 14px;
+    }
+</style>
+
+
+<table>
+    <thead>
+        <tr>
+            <th> Id</th>
+            <th> Nombre</th>
+            <th> Imagen </th>
+            <th> Precio </th>
+            <th> Stock </th>
+            <th> Categoría </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td> @item.ProductoId </td>
+                <td> @item.NombreProducto </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.RutaImagenProducto))
+                    {
+                        <img src="@item.RutaImagenProducto" style="border: 1px solid #a9bac2; width: 170px; height: 170px;" />
+                    }
+                </td>
+                <td> @item.PrecioProducto.ToString("N0") </td>
+                <td> @item.StockProducto.ToString("N0") </td>
+                <td> @item.Categoria.Nombre </td>
+            </tr>
+
+        }
+    </tbody>
+</table>

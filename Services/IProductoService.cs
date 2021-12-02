@@ -8,9 +8,11 @@ namespace Services
     {
         RespuestaService<PRODUCTO> BuscarPorId(int id);
         RespuestaService<List<PRODUCTO>> Listar();
-        RespuestaService<DataTableDTO> LlenarDataTable(PRODUCTO producto, int inicio, int registrosPorPagina);
+        RespuestaService<DataTableDTO<ProductoDTO>> LlenarDataTable(PRODUCTO producto, int inicio, int registrosPorPagina);
         RespuestaService<PRODUCTO> Guardar(PRODUCTO producto);
         RespuestaService<PRODUCTO> Actualizar(PRODUCTO producto);
         RespuestaService<bool> Eliminar(int id);
+        void ActualizarFotoProducto(decimal productoId, string extensionArchivo);
+        bool EliminarFoto(int productoId);
     }
 }

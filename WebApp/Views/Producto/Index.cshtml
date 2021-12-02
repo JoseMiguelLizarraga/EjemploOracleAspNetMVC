@@ -3,6 +3,53 @@
     ViewBag.Title = "Index";
 }
 
+
+<div id="modalSubirFoto" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
+    <div class="modal-dialog mw-100 w-90" style="width: 50%;">
+        <div class="modal-content">
+            <form onsubmit="guardarFotoEditada(event)" class="producto">
+
+                <div class="modal-header">
+                    <h4 class="modal-title">Subir Foto Producto</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        <input type="hidden" name="productoId" />
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="nombreProducto"> Nombre </label>
+                                <input type="text" name="nombreProducto" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="fotoProducto"> Foto Producto </label>
+                                <input type="file" name="fotoProducto" class="form-control" />
+                            </div>
+                        </div>
+
+
+                    </div> <!-- Fin <div class="row"> -->
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"> Guardar </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> Cancelar </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+
+
 <div id="modalCrearEditar" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
     <div class="modal-dialog mw-100 w-90" style="width: 90%;">
         <div class="modal-content">
@@ -27,12 +74,6 @@
                             <div class="form-group">
                                 <label class="control-label" for="precioProducto"> Precio </label>
                                 <input type="number" onkeyup="producto[this.name] = this.value" name="precioProducto" class="form-control" autocomplete="off" />
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label class="control-label" for="imagenProducto"> Imagen </label>
-                                <input type="text" onkeyup="producto[this.name] = this.value" name="imagenProducto" class="form-control" autocomplete="off" />
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -70,7 +111,10 @@
 <div>
 
     <br />
-    <button name="crear" onclick="crearNuevo(); $('#modalCrearEditar').modal('show')" class="btn btn-success"> <span>+</span> Agregar Nuevo Producto </button> <br />
+    <button type="button" onclick="crearNuevo(); $('#modalCrearEditar').modal('show')" class="btn btn-success"> <span>+</span> Agregar Nuevo Producto </button>
+    <button type="button" onclick="generarPDF(true)" class="btn btn-primary">Generar PDF </button>
+    <button type="button" onclick="generarExcel()" class="btn btn-info">Generar Excel </button>
+    <br />
 
     <br /><br />
     <!-- Filtro busqueda -->
@@ -139,6 +183,7 @@
                     <th> Nombre </th>
                     <th> Categoría </th>
                     <th> </th>
+                    <th></th>
                     <th> </th>
                 </tr>
             </thead>
@@ -216,7 +261,7 @@
         mostrarLoadingSpinner();
 
         await fetch("@Url.Action("LlenarDataTable", "Producto")?" + parametros, { method: "GET" })
-        .then(response => 
+        .then(response =>
         {
             if (response.ok)
             {
@@ -241,12 +286,20 @@
                         var fila = tabla.insertRow(0);
                         fila.insertCell(0).innerHTML = c.productoId;
                         fila.insertCell(1).innerHTML = c.precioProducto;
-                        fila.insertCell(2).innerHTML = c.imagenProducto;
+
+                        fila.insertCell(2).innerHTML = (c.rutaImagenProducto != null && c.rutaImagenProducto != "") ?
+                            `<img src='${c.rutaImagenProducto}' style='border: 1px solid #a9bac2; width: 170px; height: 170px;' />` : "";
+
                         fila.insertCell(3).innerHTML = c.stockProducto;
                         fila.insertCell(4).innerHTML = c.nombreProducto;
                         fila.insertCell(5).innerHTML = JSON.stringify(c.categoria);
                         fila.insertCell(6).innerHTML = "<a href='' onclick='editar(event, " + c.productoId + ")'> Editar </a>";
-                        fila.insertCell(7).innerHTML = "<a href='javascript:;' onclick='eliminar(" + c.productoId + ")'> Eliminar </a>";
+
+                        fila.insertCell(7).innerHTML = (c.rutaImagenProducto == null) ?
+                            `<a href='' onclick='obtenerProductoParaEditarFoto(event, ${c.productoId})'> Subir foto </a>` :
+                            `<a href='' onclick='eliminarFoto(${c.productoId})'> Eliminar foto </a>`;
+
+                        fila.insertCell(8).innerHTML = "<a href='javascript:;' onclick='eliminar(" + c.productoId + ")'> Eliminar </a>";
 
                     });
                 });
@@ -268,7 +321,7 @@
     const construirObjeto = () =>  // Colocar los valores del objeto de tipo Producto en el html
     {
         Object.entries(producto).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))  // No incluye referencias cruzadas en caso de que las tenga
-        .forEach(([nombreAtributo, valorAtributo]) => 
+        .forEach(([nombreAtributo, valorAtributo]) =>
         {
                 var elementoHTML = document.querySelector(`.producto [name="${nombreAtributo}"]`);
 
@@ -305,7 +358,6 @@
     {
         producto = {
             precioProducto: "",
-            imagenProducto: "",
             stockProducto: "",
             nombreProducto: "",
             categoria: { "categoriaId": null },
@@ -331,10 +383,10 @@
 
         await fetch("@Url.Action("Guardar", "Producto")", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },  
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(producto)
         })
-        .then(response => 
+        .then(response =>
         {
             if (response.ok)
             {
@@ -367,7 +419,7 @@
         await fetch("@Url.Action("BuscarPorId", "Producto")/" + id, {
             method: "GET"
         })
-        .then(response => 
+        .then(response =>
         {
             if (response.ok)
             {
@@ -388,28 +440,152 @@
         });
     }
 
+    const obtenerProductoParaEditarFoto = async (evento, id) =>  // Obtener Producto por su id
+    {
+        evento.preventDefault();
+        mostrarLoadingSpinner();
+
+        await fetch("@Url.Action("BuscarPorId", "Producto")/" + id, { method: "GET" })
+        .then(response =>
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
+                    $("#modalSubirFoto").modal("show");
+
+                    let elementosForm = document.querySelector("#modalSubirFoto form").elements;
+                    elementosForm.productoId.value = data.productoId;
+                    elementosForm.nombreProducto.value = data.nombreProducto;
+
+                    /*
+                    Array.from(document.querySelector("#modalSubirFoto form").elements).filter(x => x.tagName == "INPUT").forEach(c => {
+                        console.log(`nombre input: ${c.name} --- valor input: ${c.value}`);
+                    });
+                    */
+                });
+            }
+        })
+        .catch(error => alert("Se encontro un error"))
+        .finally(c => ocultarLoadingSpinner());
+    }
+
+    const guardarFotoEditada = async (evento) =>
+    {
+        evento.preventDefault();
+        mostrarLoadingSpinner();
+
+        let form = document.querySelector("#modalSubirFoto form");
+        let formData = new FormData(form);
+
+        await fetch("@Url.Action("GuardarFotoEditada", "Producto")", { body: formData, method: "POST" })
+        .then(response =>
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
+                    if (data.status == 200) {
+                        alert("Operación realizada con exito");
+                        obtenerListaPrincipal();
+                        $("#modalSubirFoto").modal("hide");
+                    }
+                    else
+                        alert(data.error);
+                });
+            }
+        })
+        .catch(error => alert("Se encontro un error"))
+        .finally(c => ocultarLoadingSpinner());
+    };
+
+    const eliminarFoto = async (id) =>  // Eliminar foto del Producto por su id
+    {
+        var opcionConfirm = confirm("Desea realmente eliminar la foto de este producto");
+
+        if (opcionConfirm == true)
+        {
+            mostrarLoadingSpinner();
+
+            fetch("@Url.Action("BorrarFoto", "Producto")", {
+                body: `productId=${id}`,
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                method: "post",
+            })
+            .then(response =>
+            {
+	            if(response.ok) {
+		            response.json().then(data => {
+                        alert("Operación realizada con exito");
+                        obtenerListaPrincipal();
+		            });
+	            }
+	            else {
+		            response.text().then(textoError => alert(textoError));
+	            }
+            })
+            .finally(c => ocultarLoadingSpinner());
+        }
+    }
+
     const eliminar = async (id) =>  // Eliminar Producto por su id
     {
         var opcionConfirm = confirm("Desea realmente eliminar este registro");
-        if (opcionConfirm == true) {
+
+        if (opcionConfirm == true)
+        {
             mostrarLoadingSpinner();
 
-            await fetch(`@Url.Action("Eliminar", "Producto")?id=${id}`, {
-                method: "POST"
-            })
-            .then(response => 
+            await fetch(`@Url.Action("Eliminar", "Producto")?id=${id}`, { method: "POST" })
+            .then(response =>
             {
                 if (response.ok) {
                     obtenerListaPrincipal();  // Se actualiza la lista de Producto llamando la Web Api
                 }
             })
-            .catch(error => {
-                alert("Se encontro un error");
-            })
-            .finally(c => {
-                ocultarLoadingSpinner();
-            });
+            .catch(error => alert("Se encontro un error"))
+            .finally(c => ocultarLoadingSpinner());
         }
+    }
+
+    const generarPDF = (descargarArchivo) =>
+    {
+        fetch("@Url.Action("ImprimirPDF", "Producto")", {})
+        .then(res => res.blob())
+        .then(blob => 
+        {
+            let file = window.URL.createObjectURL(blob);
+
+            if (descargarArchivo)
+            {
+                let a = document.createElement("a");
+                a.href = file;
+                a.download = "reporteProductos.pdf";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+            else {
+                window.location.assign(file);   // Abre el archivo en el navegador
+            }
+
+        });
+    }
+
+    const generarExcel = () =>
+    {
+        fetch("@Url.Action("GenerarExcel", "Producto")", {})
+        .then(res => res.blob())
+        .then(blob => 
+        {
+            let file = window.URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.href = file;
+            a.download = "ReporteProductos.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        });
     }
 
 </script>

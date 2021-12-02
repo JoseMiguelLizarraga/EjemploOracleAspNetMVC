@@ -34,7 +34,7 @@ namespace Mappings
                 CategoriaId = (decimal)model.CATEGORIA_ID,
                 PrecioProducto = (decimal)model.PRECIO_PRODUCTO,
                 StockProducto = (decimal)model.STOCK_PRODUCTO,
-                ImagenProducto = model.IMAGEN_PRODUCTO,
+                RutaImagenProducto = model.IMAGEN_PRODUCTO,
                 Categoria = model.CATEGORIA.ToDTO(),
             };
 

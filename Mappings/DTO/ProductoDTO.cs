@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Mappings.DTO
 {
@@ -26,10 +27,12 @@ namespace Mappings.DTO
         [Range(1, 10000000, ErrorMessage = "El stock del producto no está dentro del rango entre {1} y {2}.")]
         public decimal StockProducto { get; set; }
 
-        public string ImagenProducto { get; set; }
+        public string RutaImagenProducto { get; set; }
         public decimal CategoriaId { get; set; }
 
         [Required(ErrorMessage = "La categoría del producto es requerida")]
         public CategoriaDTO Categoria { get; set; }  // Esto se llama "Colaboracion de Clases"
+
+        public HttpPostedFileBase FotoProducto { get; set; }
     }
 }

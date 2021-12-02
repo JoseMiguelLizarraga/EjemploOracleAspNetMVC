@@ -25,7 +25,7 @@ namespace Services
             return new RespuestaService<List<CATEGORIA>>() { Objeto = _context.CATEGORIA.ToList() };
         }
 
-        public RespuestaService<DataTableDTO> LlenarDataTable(CATEGORIA categoria, int inicio, int registrosPorPagina)
+        public RespuestaService<DataTableDTO<CategoriaDTO>> LlenarDataTable(CATEGORIA categoria, int inicio, int registrosPorPagina)
         {
             if (categoria == null) categoria = new CATEGORIA();  // En caso de que sea nulo se inicializa 
 
@@ -40,9 +40,9 @@ namespace Services
 
             List<CATEGORIA> lista = v.ToList();
 
-            return new RespuestaService<DataTableDTO>()
+            return new RespuestaService<DataTableDTO<CategoriaDTO>>()
             {
-                Objeto = new DataTableDTO()
+                Objeto = new DataTableDTO<CategoriaDTO>()
                 {
                     RecordsFiltered = totalRegistros,
                     RecordsTotal = totalRegistros,

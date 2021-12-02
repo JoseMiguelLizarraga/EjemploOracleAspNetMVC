@@ -3,7 +3,7 @@
 
 Incluye un mantenedor de categorías y otro de productos. Ambos mantenedores poseen un mecanismo de paginación backend, pero solo el de productos 
 utiliza procedimientos almacenados a la hora de insertar, actualizar y eliminar. También posee una autenticación de usuario básica que no
-ocupa base de datos <br /><br />
+ocupa base de datos. El mantenedor de productos permite agregar y remover una foto. También genera reportes pdf y excel. <br /><br />
 
 Credenciales de acceso: <br />
 Email: admin@admin.cl <br />
@@ -32,3 +32,7 @@ Utilizar el archivo script_officemarket.sql que está en la carpeta Archivos SQL
 La cadena de conexión debe ser reemplazada dentro de la solución en: <br /> 
 DataAccess\App.Config <br />
 WebApp\Web.config <br />
+
+## Reemplazar la ruta donde se almacenan las imagenes de los productos
+
+Debe ser reemplazada dentro de la solución en el appSettings del WebApp\Web.config

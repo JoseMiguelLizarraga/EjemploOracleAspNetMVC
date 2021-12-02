@@ -44,7 +44,7 @@ namespace WebApp.Controllers
         [HttpGet]
         public ActionResult LlenarDataTable(CategoriaDTO dto, int start, int length)
         {
-            RespuestaService<DataTableDTO> result = _servicio.LlenarDataTable(dto.ToDatabaseObject(), start, length);
+            RespuestaService<DataTableDTO<CategoriaDTO>> result = _servicio.LlenarDataTable(dto.ToDatabaseObject(), start, length);
 
             if (result.Objeto != null)
                 return new JsonCamelCaseResult(result.Objeto, JsonRequestBehavior.AllowGet);
