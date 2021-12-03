@@ -7,7 +7,7 @@
 <div id="modalSubirFoto" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
     <div class="modal-dialog mw-100 w-90" style="width: 50%;">
         <div class="modal-content">
-            <form onsubmit="guardarFotoEditada(event)" class="producto">
+            <form onsubmit="guardarFoto(event)">
 
                 <div class="modal-header">
                     <h4 class="modal-title">Subir Foto Producto</h4>
@@ -53,7 +53,7 @@
 <div id="modalCrearEditar" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
     <div class="modal-dialog mw-100 w-90" style="width: 90%;">
         <div class="modal-content">
-            <form onsubmit="guardar(event)" class="producto">
+            <form onsubmit="guardar(event)">
 
                 <div class="modal-header">
                     <h4 class="modal-title">Crear/Editar</h4>
@@ -156,12 +156,12 @@
     <div id="nav_paginacion" style="display: none">
         <div class="row">
             <div class="col-md-1">
-                <button id="btn_pagina_anterior" onclick="paginaActual = paginaActual - 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                <button onclick="paginaActual = paginaActual - 1; obtenerListaPrincipal()" type="button" class="btn_pagina_anterior btn btn-default">
                     <span> < </span> Anterior
                 </button>
             </div>
             <div class="col-md-1">
-                <button id="btn_pagina_siguiente" onclick="paginaActual = paginaActual + 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                <button onclick="paginaActual = paginaActual + 1; obtenerListaPrincipal()" type="button" class="btn_pagina_siguiente btn btn-default">
                     Siguiente <span> > </span>
                 </button>
             </div>
@@ -226,7 +226,7 @@
             nombrePagina: "numeroPagina", nombreBusqueda: "busqueda", mensajeBuscando: "buscando resultados ...",
             onchange: () => {
                 producto.categoria.categoriaId = event.target.value;
-                producto.categoria.nombre = event.target.options[event.target.selectedIndex].text;  // Esto es para que no de problemas la validacion backend
+                producto.categoria.nombre = event.target.options[event.target.selectedIndex].text;  // Asi no da problemas la validacion backend
             }
         });
 
@@ -253,8 +253,8 @@
         var inicio = paginaActual * registrosPorPagina;
 
         var consulta = obtenerConsultaBuscador();
-        consulta["start"] = inicio;                 // Datos para paginacion
-        consulta["length"] = registrosPorPagina;    // Datos para paginacion
+        consulta.start = inicio;                 // Datos para paginacion
+        consulta.length = registrosPorPagina;    // Datos para paginacion
 
         var parametros = Object.entries(consulta).map(c => c.join("=")).join("&");
 
@@ -265,24 +265,27 @@
         {
             if (response.ok)
             {
-                response.json().then(data =>
+                response.json().then(res =>
                 {
-                    totalPaginas = Math.ceil(parseInt(data["recordsTotal"]) / registrosPorPagina) - 1;
+                    totalPaginas = Math.ceil(parseInt(res.recordsTotal) / registrosPorPagina) - 1;
+
+                    var navPaginacion = document.querySelector("#nav_paginacion");
 
                     if (totalPaginas > 0) {
                         // Habilitar o desabilitar botones de navegacion para la paginacion
-                        document.getElementById("nav_paginacion").style.display = "block";
-                        document.getElementById("btn_pagina_anterior").disabled = (paginaActual == 0) ? true : false;
-                        document.getElementById("btn_pagina_siguiente").disabled = (paginaActual >= totalPaginas) ? true : false;
+                        navPaginacion.style.display = "block";
+                        navPaginacion.querySelector(".btn_pagina_anterior").disabled = (paginaActual == 0);
+                        navPaginacion.querySelector(".btn_pagina_siguiente").disabled = (paginaActual >= totalPaginas);
                     }
                     else {
-                        document.getElementById("nav_paginacion").style.display = "none";
+                        navPaginacion.style.display = "none";
                     }
 
-                    var tabla = document.getElementById("tablaPrincipal").getElementsByTagName("tbody")[0];
+                    var tabla = document.querySelector("#tablaPrincipal tbody");
                     tabla.innerHTML = "";   // Limpia la tabla
 
-                    data["data"].reverse().forEach((c, index) => {
+                    res.data.reverse().forEach((c, index) =>
+                    {
                         var fila = tabla.insertRow(0);
                         fila.insertCell(0).innerHTML = c.productoId;
                         fila.insertCell(1).innerHTML = c.precioProducto;
@@ -300,17 +303,12 @@
                             `<a href='' onclick='eliminarFoto(${c.productoId})'> Eliminar foto </a>`;
 
                         fila.insertCell(8).innerHTML = "<a href='javascript:;' onclick='eliminar(" + c.productoId + ")'> Eliminar </a>";
-
                     });
                 });
             }
         })
-        .catch(error => {
-            alert("Se encontro un error");
-        })
-        .finally(c => {
-            ocultarLoadingSpinner();
-        });
+        .catch(error => alert(error))
+        .finally(c => ocultarLoadingSpinner());
     }
 
     const resetearPaginacion = () => {
@@ -320,37 +318,39 @@
 
     const construirObjeto = () =>  // Colocar los valores del objeto de tipo Producto en el html
     {
+        var formCrearEditar = document.querySelector("#modalCrearEditar form");
+
         Object.entries(producto).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))  // No incluye referencias cruzadas en caso de que las tenga
         .forEach(([nombreAtributo, valorAtributo]) =>
         {
-                var elementoHTML = document.querySelector(`.producto [name="${nombreAtributo}"]`);
+            var elementoHTML = formCrearEditar.querySelector(`[name="${nombreAtributo}"]`);
 
-                if (elementoHTML != null)
+            if (elementoHTML != null)
+            {
+                if (valorAtributo instanceof Object)  // Si es una foreign key
                 {
-                    if (valorAtributo instanceof Object)  // Si es una foreign key
+                    if (nombreAtributo == "categoria")
                     {
-                        if (nombreAtributo == "categoria")
-                        {
-                            elementoHTML.textContent = "";    // Borra todos los options del select
-                            var nuevoOption = document.createElement("option");
+                        elementoHTML.textContent = "";    // Borra todos los options del select
+                        var nuevoOption = document.createElement("option");
 
-                            if (valorAtributo.categoriaId != null && valorAtributo.categoriaId != "") {
-                                nuevoOption.selected = true;
-                                nuevoOption.text = valorAtributo.nombre;
-                                nuevoOption.value = valorAtributo.categoriaId;
-                            }
-                            else {
-                                nuevoOption.text = "- Seleccione -";
-                                nuevoOption.value = "";
-                            }
-                            elementoHTML.appendChild(nuevoOption);   // Agrega el nuevo option al select
+                        if (valorAtributo.categoriaId != null && valorAtributo.categoriaId != "") {
+                            nuevoOption.selected = true;
+                            nuevoOption.text = valorAtributo.nombre;
+                            nuevoOption.value = valorAtributo.categoriaId;
                         }
-                    }
-                    else {
-                        elementoHTML.value = valorAtributo;  // Coloca los valores del objeto en cada elemento del form
+                        else {
+                            nuevoOption.text = "- Seleccione -";
+                            nuevoOption.value = "";
+                        }
+                        elementoHTML.appendChild(nuevoOption);   // Agrega el nuevo option al select
                     }
                 }
-            });
+                else {
+                    elementoHTML.value = valorAtributo;  // Coloca los valores del objeto en cada elemento del form
+                }
+            }
+        });
 
     }
 
@@ -369,7 +369,7 @@
 
     const validar = (producto) =>  // Validar Producto
     {
-        if (["", null].includes(producto.categoria["categoriaId"])) return "El campo de tipo Categoria no está seleccionado";
+        if (["", null].includes(producto.categoria.categoriaId)) return "El campo de tipo Categoria no está seleccionado";
         return "";
     }
 
@@ -470,12 +470,12 @@
         .finally(c => ocultarLoadingSpinner());
     }
 
-    const guardarFotoEditada = async (evento) =>
+    const guardarFoto = async (evento) =>
     {
         evento.preventDefault();
         mostrarLoadingSpinner();
 
-        let form = document.querySelector("#modalSubirFoto form");
+        let form = evento.target;           // document.querySelector("#modalSubirFoto form");
         let formData = new FormData(form);
 
         await fetch("@Url.Action("GuardarFotoEditada", "Producto")", { body: formData, method: "POST" })
@@ -536,7 +536,11 @@
         {
             mostrarLoadingSpinner();
 
-            await fetch(`@Url.Action("Eliminar", "Producto")?id=${id}`, { method: "POST" })
+            await fetch(`@Url.Action("Eliminar", "Producto")`, {
+                body: `id=${id}`,
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                method: "POST"
+            })
             .then(response =>
             {
                 if (response.ok) {
@@ -550,6 +554,8 @@
 
     const generarPDF = (descargarArchivo) =>
     {
+        mostrarLoadingSpinner();
+
         fetch("@Url.Action("ImprimirPDF", "Producto")", {})
         .then(res => res.blob())
         .then(blob => 
@@ -568,12 +574,15 @@
             else {
                 window.location.assign(file);   // Abre el archivo en el navegador
             }
-
-        });
+        })
+        .catch(error => alert(error))
+        .finally(c => ocultarLoadingSpinner());
     }
 
     const generarExcel = () =>
     {
+        mostrarLoadingSpinner();
+
         fetch("@Url.Action("GenerarExcel", "Producto")", {})
         .then(res => res.blob())
         .then(blob => 
@@ -585,7 +594,9 @@
             document.body.appendChild(a);
             a.click();
             a.remove();
-        });
+        })
+        .catch(error => alert(error))
+        .finally(c => ocultarLoadingSpinner());
     }
 
 </script>

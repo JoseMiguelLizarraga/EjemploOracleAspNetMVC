@@ -131,5 +131,22 @@ namespace Services
                 return new RespuestaService<bool>() { EsValido = false, ExcepcionCapturada = ExcepcionesHelper.ObtenerExcepcion(ex) };
             }
         }
+
+        public RespuestaService<bool> GuardarDatosExcel(List<CATEGORIA> listaCategoria)
+        {
+            try
+            {
+                foreach (CATEGORIA categoria in listaCategoria)
+                {
+                    _context.CATEGORIA_INSERTAR(categoria.NOMBRE);
+                }
+
+                return new RespuestaService<bool>() { EsValido = true };
+            }
+            catch (Exception ex)
+            {
+                return new RespuestaService<bool>() { EsValido = false, ExcepcionCapturada = ExcepcionesHelper.ObtenerExcepcion(ex) };
+            }
+        }
     }
 }

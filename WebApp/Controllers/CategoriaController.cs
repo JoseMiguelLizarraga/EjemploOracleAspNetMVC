@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
@@ -10,6 +11,8 @@ using Mappings;
 using Mappings.DTO;
 using Services;
 using WebApp.Util;
+using ExcelDataReader;  // Usa la libreria ExcelDataReader.DataSet para leer archivos excel 
+using System.Data;
 
 namespace WebApp.Controllers
 {
@@ -99,6 +102,70 @@ namespace WebApp.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.OK);
             else
                 return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
+        }
+
+        [HttpPost]
+        public ActionResult ImportarExcel()
+        {
+            HttpRequest httpRequest = System.Web.HttpContext.Current.Request;
+            HttpPostedFile archivo = httpRequest.Files["archivo"];
+
+            if (archivo == null)
+                return Json(new { status = 400, error = "El archivo es requerido" });
+
+            try
+            {
+                if (archivo.ContentType == "application/vnd.ms-excel" || archivo.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                {
+                    Stream stream = archivo.InputStream;
+                    List<CategoriaDTO> listaCategoriaDTO = new List<CategoriaDTO>();
+
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    {
+                        if (reader.AsDataSet().Tables.Count > 1) 
+                            throw new ArgumentException("El archivo recibido posee más de una hoja"); 
+
+                        DataTable pagina = reader.AsDataSet().Tables[0];
+                        int contadorFila = 1;  
+
+                        if (pagina.Rows.Count == 0)
+                            throw new ArgumentException("La hoja 1 del archivo excel no posee registros");
+
+                        for (int i = 0; i < pagina.Rows.Count; i++)
+                        {
+                            DataRow fila = pagina.Rows[i];
+
+                            string Nombre = fila[0].ToString();
+
+                            if (string.IsNullOrEmpty(Nombre))
+                                throw new ArgumentException($"El campo Nombre de la fila {contadorFila} esta vacío");
+
+                            CategoriaDTO categoria = new CategoriaDTO();
+
+                            categoria.Nombre = Nombre;
+                            listaCategoriaDTO.Add(categoria);
+                            contadorFila++;
+                        }
+                    }
+
+                    List<CATEGORIA> listaCategoria = listaCategoriaDTO.Select(Mapper.ToDatabaseObject).ToList();
+                    RespuestaService<bool> result = _servicio.GuardarDatosExcel(listaCategoria);
+
+                    if (result.EsValido)
+                        return Json(new { status = 200 });
+                    else
+                        return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
+                }
+                else
+                {
+                    return Json(new { status = 400, error = "El archivo debe ser en formato xls" });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = 500, error = ex.Message });
+            }
         }
     }
 }

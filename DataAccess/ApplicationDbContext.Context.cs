@@ -30,7 +30,6 @@ namespace DataAccess
     
         public DbSet<CATEGORIA> CATEGORIA { get; set; }
         public DbSet<PRODUCTO> PRODUCTO { get; set; }
-        public DbSet<USUARIO> USUARIO { get; set; }
     
         public virtual int SP_CREATE_CATEGORIA(string v_NOMBRE)
         {
@@ -151,7 +150,7 @@ namespace DataAccess
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("PRODUCTO_INSERTAR", v_NOMBREParameter, v_PRECIOParameter, v_STOCKParameter, v_IMAGENParameter, v_CATEGORIA_IDParameter, iD_GENERADO);
         }
     
-        public virtual int PRODUCTO_ACTUALIZAR(Nullable<decimal> v_ID, string v_NOMBRE, string v_PRECIO, Nullable<decimal> v_STOCK, string v_IMAGEN, Nullable<decimal> v_CATEGORIA_ID)
+        public virtual int PRODUCTO_ACTUALIZAR(Nullable<decimal> v_ID, string v_NOMBRE, string v_PRECIO, Nullable<decimal> v_STOCK, Nullable<decimal> v_CATEGORIA_ID)
         {
             var v_IDParameter = v_ID.HasValue ?
                 new ObjectParameter("V_ID", v_ID) :
@@ -169,15 +168,11 @@ namespace DataAccess
                 new ObjectParameter("V_STOCK", v_STOCK) :
                 new ObjectParameter("V_STOCK", typeof(decimal));
     
-            var v_IMAGENParameter = v_IMAGEN != null ?
-                new ObjectParameter("V_IMAGEN", v_IMAGEN) :
-                new ObjectParameter("V_IMAGEN", typeof(string));
-    
             var v_CATEGORIA_IDParameter = v_CATEGORIA_ID.HasValue ?
                 new ObjectParameter("V_CATEGORIA_ID", v_CATEGORIA_ID) :
                 new ObjectParameter("V_CATEGORIA_ID", typeof(decimal));
     
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("PRODUCTO_ACTUALIZAR", v_IDParameter, v_NOMBREParameter, v_PRECIOParameter, v_STOCKParameter, v_IMAGENParameter, v_CATEGORIA_IDParameter);
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("PRODUCTO_ACTUALIZAR", v_IDParameter, v_NOMBREParameter, v_PRECIOParameter, v_STOCKParameter, v_CATEGORIA_IDParameter);
         }
     
         public virtual int PRODUCTO_ELIMINAR(Nullable<decimal> v_ID)
@@ -187,6 +182,15 @@ namespace DataAccess
                 new ObjectParameter("V_ID", typeof(decimal));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("PRODUCTO_ELIMINAR", v_IDParameter);
+        }
+    
+        public virtual int CATEGORIA_INSERTAR(string v_NOMBRE)
+        {
+            var v_NOMBREParameter = v_NOMBRE != null ?
+                new ObjectParameter("V_NOMBRE", v_NOMBRE) :
+                new ObjectParameter("V_NOMBRE", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("CATEGORIA_INSERTAR", v_NOMBREParameter);
         }
     }
 }

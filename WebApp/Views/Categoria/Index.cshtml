@@ -3,10 +3,42 @@
     ViewBag.Title = "Index";
 }
 
+<div id="modalSubirExcel" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
+    <div class="modal-dialog mw-100 w-90" style="width: 50%;">
+        <div class="modal-content">
+            <form onsubmit="subirExcel(event)">
+
+                <div class="modal-header">
+                    <h4 class="modal-title">Subir Archivo Excel</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label" for="archivo"> Archivo </label>
+                                <input type="file" name="archivo" class="form-control" />
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"> Subir Archivo </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"> Cancelar </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <div id="modalCrearEditar" class="modal fade in" data-backdrop="static" data-keyboard="false" tabindex="-1" style="overflow-y: scroll;" role="dialog">
     <div class="modal-dialog mw-100 w-90" style="width: 90%;">
         <div class="modal-content">
-            <form onsubmit="guardar(event)" class="categoria">
+            <form onsubmit="guardar(event)">
 
                 <div class="modal-header">
                     <h4 class="modal-title">Crear/Editar</h4>
@@ -40,7 +72,10 @@
 <div>
 
     <br />
-    <button name="crear" onclick="crearNuevo(); $('#modalCrearEditar').modal('show')" class="btn btn-success"> <span>+</span> Agregar Nueva Categoría </button> <br />
+    <button name="crear" onclick="crearNuevo(); $('#modalCrearEditar').modal('show')" class="btn btn-success"> <span>+</span> Agregar Nueva Categoría </button>
+    <button name="crear" onclick="$('#modalSubirExcel').modal('show')" class="btn btn-primary"> Subir Excel </button>
+
+    <br />
 
     <br /><br />
     <!-- Filtro busqueda -->
@@ -61,18 +96,17 @@
     <br />
     <h4> Listado de Categoria </h4>
 
-    <!-- Inicio nav paginacion -->
     <br />
 
     <div id="nav_paginacion" style="display: none">
         <div class="row">
             <div class="col-md-1">
-                <button id="btn_pagina_anterior" onclick="paginaActual = paginaActual - 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                <button onclick="paginaActual = paginaActual - 1; obtenerListaPrincipal()" type="button" class="btn_pagina_anterior btn btn-default">
                     <span> < </span> Anterior
                 </button>
             </div>
             <div class="col-md-1">
-                <button id="btn_pagina_siguiente" onclick="paginaActual = paginaActual + 1; obtenerListaPrincipal()" type="button" class="btn btn-default">
+                <button onclick="paginaActual = paginaActual + 1; obtenerListaPrincipal()" type="button" class="btn_pagina_siguiente btn btn-default">
                     Siguiente <span> > </span>
                 </button>
             </div>
@@ -80,7 +114,6 @@
     </div>
 
     <br />
-    <!-- Fin nav paginacion -->
 
     <div class="table-responsive">
         <table id="tablaPrincipal" class="table table-bordered">
@@ -95,7 +128,7 @@
             <tbody>
             </tbody>
         </table>
-    </div> 
+    </div>
 </div>
 
 <script>
@@ -131,36 +164,38 @@
         var inicio = paginaActual * registrosPorPagina;
 
         var consulta = obtenerConsultaBuscador();
-        consulta["start"] = inicio;                 // Datos para paginacion
-        consulta["length"] = registrosPorPagina;    // Datos para paginacion
+        consulta.start = inicio;                 // Datos para paginacion
+        consulta.length = registrosPorPagina;    // Datos para paginacion
 
         var parametros = Object.entries(consulta).map(c => c.join("=")).join("&");
 
         mostrarLoadingSpinner();
 
         await fetch("@Url.Action("LlenarDataTable", "Categoria")?" + parametros, { method: "GET" })
-        .then(response => 
+        .then(response =>
         {
             if (response.ok)
             {
-                response.json().then(data =>
+                response.json().then(res =>
                 {
-                    totalPaginas = Math.ceil(parseInt(data["recordsTotal"]) / registrosPorPagina) - 1;
+                    totalPaginas = Math.ceil(parseInt(res.recordsTotal) / registrosPorPagina) - 1;
+
+                    var navPaginacion = document.querySelector("#nav_paginacion");
 
                     if (totalPaginas > 0) {
                         // Habilitar o desabilitar botones de navegacion para la paginacion
-                        document.getElementById("nav_paginacion").style.display = "block";
-                        document.getElementById("btn_pagina_anterior").disabled = (paginaActual == 0) ? true : false;
-                        document.getElementById("btn_pagina_siguiente").disabled = (paginaActual >= totalPaginas) ? true : false;
+                        navPaginacion.style.display = "block";
+                        navPaginacion.querySelector(".btn_pagina_anterior").disabled = (paginaActual == 0);
+                        navPaginacion.querySelector(".btn_pagina_siguiente").disabled = (paginaActual >= totalPaginas);
                     }
                     else {
-                        document.getElementById("nav_paginacion").style.display = "none";
+                        navPaginacion.style.display = "none";
                     }
 
-                    var tabla = document.getElementById("tablaPrincipal").getElementsByTagName("tbody")[0];
+                    var tabla = document.querySelector("#tablaPrincipal tbody");
                     tabla.innerHTML = "";   // Limpia la tabla
 
-                    data["data"].reverse().forEach((c, index) => {
+                    res.data.reverse().forEach((c, index) => {
                         var fila = tabla.insertRow(0);
                         fila.insertCell(0).innerHTML = c.categoriaId;
                         fila.insertCell(1).innerHTML = c.nombre;
@@ -171,12 +206,8 @@
                 });
             }
         })
-        .catch(error => {
-            alert("Se encontro un error");
-        })
-        .finally(c => {
-            ocultarLoadingSpinner();
-        });
+        .catch(error => alert(error))
+        .finally(c => ocultarLoadingSpinner());
     }
 
     const resetearPaginacion = () => {
@@ -186,13 +217,15 @@
 
     const construirObjeto = () =>  // Colocar los valores del objeto de tipo Categoria en el html
     {
-        Object.entries(categoria).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))
-        .forEach(([nombreAtributo, valorAtributo]) => {
-            var elementoHTML = document.querySelector(`.categoria [name="${nombreAtributo}"]`);
+        var formCrearEditar = document.querySelector("#modalCrearEditar form");
 
-            if (elementoHTML != null) {
+        Object.entries(categoria).filter(([, valorAtributo]) => !Array.isArray(valorAtributo))
+        .forEach(([nombreAtributo, valorAtributo]) =>
+        {
+            var elementoHTML = formCrearEditar.querySelector(`[name="${nombreAtributo}"]`);
+
+            if (elementoHTML != null)
                 elementoHTML.value = valorAtributo;  // Coloca los valores del objeto en cada elemento del form
-            }
         });
     }
 
@@ -216,7 +249,7 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(categoria)
         })
-        .then(response => 
+        .then(response =>
         {
             if (response.ok)
             {
@@ -233,12 +266,8 @@
                 });
             }
         })
-        .catch(error => {
-            alert("Se encontro un error");
-        })
-        .finally(c => {
-            ocultarLoadingSpinner();
-        });
+        .catch(error => alert(error))
+        .finally(c => ocultarLoadingSpinner());
     }
 
     const editar = async (evento, id) =>  // Obtener Categoria por su id
@@ -246,10 +275,8 @@
         evento.preventDefault();
         mostrarLoadingSpinner();
 
-        await fetch("@Url.Action("BuscarPorId", "Categoria")/" + id, {
-            method: "GET"
-        })
-        .then(response => 
+        await fetch("@Url.Action("BuscarPorId", "Categoria")/" + id, { method: "GET" })
+        .then(response =>
         {
             if (response.ok)
             {
@@ -263,12 +290,8 @@
                 });
             }
         })
-        .catch(error => {
-            alert("Se encontro un error");
-        })
-        .finally(c => {
-            ocultarLoadingSpinner();
-        });
+        .catch(error => alert(error))
+        .finally(c => ocultarLoadingSpinner());
     }
 
     const eliminar = async (id) =>  // Eliminar Categoria por su id
@@ -279,23 +302,50 @@
         {
             mostrarLoadingSpinner();
 
-            await fetch(`@Url.Action("Eliminar", "Categoria")?id=${id}`, {
+            await fetch("@Url.Action("Eliminar", "Categoria")", {
+                body: `id=${id}`,
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 method: "POST"
             })
-            .then(response => 
+            .then(response =>
             {
                 if (response.ok) {
                     obtenerListaPrincipal();  // Se actualiza la lista de Categorias
                 }
             })
-            .catch(error => {
-                alert("Se encontro un error");
-            })
-            .finally(c => {
-                ocultarLoadingSpinner();
-            });
+            .catch(error => alert(error))
+            .finally(c => ocultarLoadingSpinner());
         }
     }
+
+    const subirExcel = async (evento) =>
+    {
+        evento.preventDefault();
+        mostrarLoadingSpinner();
+
+        let form = evento.target;           // document.querySelector("#modalSubirExcel form");
+        let formData = new FormData(form);
+
+        await fetch("@Url.Action("ImportarExcel", "Categoria")", { body: formData, method: "POST" })
+        .then(response =>
+        {
+            if (response.ok)
+            {
+                response.json().then(data =>
+                {
+                    if (data.status == 200) {
+                        alert("Operación realizada con exito");
+                        obtenerListaPrincipal();
+                        $("#modalSubirExcel").modal("hide");
+                    }
+                    else
+                        alert(data.error);
+                });
+            }
+        })
+        .catch(error => alert("Se encontro un error"))
+        .finally(c => ocultarLoadingSpinner());
+    };
 
 </script>
 

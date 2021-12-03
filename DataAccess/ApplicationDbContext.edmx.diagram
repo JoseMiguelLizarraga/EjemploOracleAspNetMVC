@@ -7,7 +7,6 @@
       <Diagram DiagramId="d4d9a1773b004cd79f10395ac84c300d" Name="Diagram1" ZoomLevel="106">
         <EntityTypeShape EntityType="Model.CATEGORIA" Width="1.5" PointX="0.75" PointY="1.375" IsExpanded="true" />
         <EntityTypeShape EntityType="Model.PRODUCTO" Width="1.5" PointX="3" PointY="1" IsExpanded="true" />
-        <EntityTypeShape EntityType="Model.USUARIO" Width="1.5" PointX="0.75" PointY="4.75" IsExpanded="true" />
         <AssociationConnector Association="Model.SYS_C009383" ManuallyRouted="false" />
       </Diagram>
     </edmx:Diagrams>

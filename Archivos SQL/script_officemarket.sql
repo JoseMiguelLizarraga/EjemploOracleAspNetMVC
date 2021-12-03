@@ -98,7 +98,6 @@ create or replace procedure producto_actualizar(
     v_nombre varchar2, 
     v_precio varchar2, 
     v_stock number,
-    v_imagen varchar2,
     v_categoria_id number
 ) 
 as
@@ -108,7 +107,6 @@ begin
         nombre_producto = v_nombre,
         precio_producto = v_precio,
         stock_producto  = v_stock,
-        imagen_producto = v_imagen,
         categoria_id    = v_categoria_id
     where 
         producto_id = v_id;
@@ -123,6 +121,12 @@ begin
     commit;
 end;
 
+
+create or replace procedure categoria_insertar(v_nombre varchar2) as
+begin
+    insert into categoria (nombre) values (v_nombre);
+    commit;
+end;
 
 commit;
 

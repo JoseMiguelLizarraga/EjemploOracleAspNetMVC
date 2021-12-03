@@ -91,7 +91,7 @@ namespace Services
         {
             try
             {
-                _context.PRODUCTO_ACTUALIZAR(p.PRODUCTO_ID, p.NOMBRE_PRODUCTO, p.PRECIO_PRODUCTO.ToString(), p.STOCK_PRODUCTO, null, p.CATEGORIA_ID);
+                _context.PRODUCTO_ACTUALIZAR(p.PRODUCTO_ID, p.NOMBRE_PRODUCTO, p.PRECIO_PRODUCTO.ToString(), p.STOCK_PRODUCTO, p.CATEGORIA_ID);
                 return new RespuestaService<PRODUCTO>() { Objeto = p };
             }
             catch (Exception ex)

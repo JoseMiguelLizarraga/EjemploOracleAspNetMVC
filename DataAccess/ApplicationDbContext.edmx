@@ -23,16 +23,7 @@
           <Property Name="IMAGEN_PRODUCTO" Type="varchar2" MaxLength="200" />
           <Property Name="CATEGORIA_ID" Type="number" Precision="38" Scale="0" />
         </EntityType>
-        <EntityType Name="USUARIO">
-          <Key>
-            <PropertyRef Name="USER_ID" />
-          </Key>
-          <Property Name="USER_ID" Type="number" Precision="38" Scale="0" Nullable="false" />
-          <Property Name="EMAIL" Type="varchar2" MaxLength="200" />
-          <Property Name="PASSWORD" Type="varchar2" MaxLength="200" />
-          <Property Name="ULTIMA_CONEXION" Type="timestamp" Precision="6" />
-        </EntityType>
-        <Association Name="SYS_C009396">
+        <Association Name="SYS_C009406">
           <End Role="CATEGORIA" Type="Self.CATEGORIA" Multiplicity="0..1" />
           <End Role="PRODUCTO" Type="Self.PRODUCTO" Multiplicity="*" />
           <ReferentialConstraint>
@@ -44,12 +35,14 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Function Name="CATEGORIA_INSERTAR" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="OFFICEMARKET">
+          <Parameter Name="V_NOMBRE" Type="varchar2" Mode="In" />
+        </Function>
         <Function Name="PRODUCTO_ACTUALIZAR" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="OFFICEMARKET">
           <Parameter Name="V_ID" Type="number" Mode="In" />
           <Parameter Name="V_NOMBRE" Type="varchar2" Mode="In" />
           <Parameter Name="V_PRECIO" Type="varchar2" Mode="In" />
           <Parameter Name="V_STOCK" Type="number" Mode="In" />
-          <Parameter Name="V_IMAGEN" Type="varchar2" Mode="In" />
           <Parameter Name="V_CATEGORIA_ID" Type="number" Mode="In" />
         </Function>
         <Function Name="PRODUCTO_ELIMINAR" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="OFFICEMARKET">
@@ -66,8 +59,7 @@
         <EntityContainer Name="ModelStoreContainer">
           <EntitySet Name="CATEGORIA" EntityType="Self.CATEGORIA" Schema="OFFICEMARKET" store:Type="Tables" />
           <EntitySet Name="PRODUCTO" EntityType="Self.PRODUCTO" Schema="OFFICEMARKET" store:Type="Tables" />
-          <EntitySet Name="USUARIO" EntityType="Self.USUARIO" Schema="OFFICEMARKET" store:Type="Tables" />
-          <AssociationSet Name="SYS_C009396" Association="Self.SYS_C009396">
+          <AssociationSet Name="SYS_C009406" Association="Self.SYS_C009406">
             <End Role="CATEGORIA" EntitySet="CATEGORIA" />
             <End Role="PRODUCTO" EntitySet="PRODUCTO" />
           </AssociationSet>
@@ -96,15 +88,6 @@
           <Property Name="CATEGORIA_ID" Type="Decimal" Precision="38" Scale="0" />
           <NavigationProperty Name="CATEGORIA" Relationship="Self.SYS_C009383" FromRole="PRODUCTO" ToRole="CATEGORIA" />
         </EntityType>
-        <EntityType Name="USUARIO">
-          <Key>
-            <PropertyRef Name="USER_ID" />
-          </Key>
-          <Property Name="USER_ID" Type="Decimal" Precision="38" Scale="0" Nullable="false" />
-          <Property Name="EMAIL" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PASSWORD" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="ULTIMA_CONEXION" Type="DateTime" Precision="6" />
-        </EntityType>
         <Association Name="SYS_C009383">
           <End Role="CATEGORIA" Type="Self.CATEGORIA" Multiplicity="0..1" />
           <End Role="PRODUCTO" Type="Self.PRODUCTO" Multiplicity="*" />
@@ -120,7 +103,6 @@
         <EntityContainer Name="Entities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="CATEGORIA" EntityType="Self.CATEGORIA" />
           <EntitySet Name="PRODUCTO" EntityType="Self.PRODUCTO" />
-          <EntitySet Name="USUARIO" EntityType="Self.USUARIO" />
           <AssociationSet Name="SYS_C009383" Association="Self.SYS_C009383">
             <End Role="CATEGORIA" EntitySet="CATEGORIA" />
             <End Role="PRODUCTO" EntitySet="PRODUCTO" />
@@ -166,11 +148,13 @@
             <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
             <Parameter Name="V_PRECIO" Mode="In" Type="String" />
             <Parameter Name="V_STOCK" Mode="In" Type="Decimal" />
-            <Parameter Name="V_IMAGEN" Mode="In" Type="String" />
             <Parameter Name="V_CATEGORIA_ID" Mode="In" Type="Decimal" />
           </FunctionImport>
           <FunctionImport Name="PRODUCTO_ELIMINAR">
           <Parameter Name="V_ID" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="CATEGORIA_INSERTAR">
+            <Parameter Name="V_NOMBRE" Mode="In" Type="String" />
           </FunctionImport>
         </EntityContainer>
       </Schema>
@@ -199,19 +183,10 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="USUARIO">
-            <EntityTypeMapping TypeName="Model.USUARIO">
-              <MappingFragment StoreEntitySet="USUARIO">
-                <ScalarProperty Name="USER_ID" ColumnName="USER_ID" />
-                <ScalarProperty Name="EMAIL" ColumnName="EMAIL" />
-                <ScalarProperty Name="PASSWORD" ColumnName="PASSWORD" />
-                <ScalarProperty Name="ULTIMA_CONEXION" ColumnName="ULTIMA_CONEXION" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <FunctionImportMapping FunctionImportName="PRODUCTO_INSERTAR" FunctionName="Model.Store.PRODUCTO_INSERTAR" />
           <FunctionImportMapping FunctionImportName="PRODUCTO_ACTUALIZAR" FunctionName="Model.Store.PRODUCTO_ACTUALIZAR" />
           <FunctionImportMapping FunctionImportName="PRODUCTO_ELIMINAR" FunctionName="Model.Store.PRODUCTO_ELIMINAR" />
+          <FunctionImportMapping FunctionImportName="CATEGORIA_INSERTAR" FunctionName="Model.Store.CATEGORIA_INSERTAR" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

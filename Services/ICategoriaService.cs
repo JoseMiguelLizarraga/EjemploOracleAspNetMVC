@@ -13,5 +13,6 @@ namespace Services
         RespuestaService<CATEGORIA> Guardar(CATEGORIA categoria);
         RespuestaService<CATEGORIA> Actualizar(CATEGORIA categoria);
         RespuestaService<bool> Eliminar(int id);
+        RespuestaService<bool> GuardarDatosExcel(List<CATEGORIA> listaCategoria);
     }
 }

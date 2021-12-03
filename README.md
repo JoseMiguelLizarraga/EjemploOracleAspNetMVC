@@ -36,3 +36,7 @@ WebApp\Web.config <br />
 ## Reemplazar la ruta donde se almacenan las imagenes de los productos
 
 Debe ser reemplazada dentro de la solución en el appSettings del WebApp\Web.config
+
+## Agregar categorías con un archivo excel
+
+Puede utilizar como ejemplo el archivo que está en Archivos SQL\Categorias.xlsx
