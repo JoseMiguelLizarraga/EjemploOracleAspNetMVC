@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,7 @@ using Mappings;
 using Mappings.DTO;
 using Services;
 using WebApp.Util;
-using ExcelDataReader;  // Usa la libreria ExcelDataReader.DataSet para leer archivos excel 
+using ExcelDataReader; 
 using System.Data;
 
 namespace WebApp.Controllers
@@ -38,7 +37,7 @@ namespace WebApp.Controllers
             if (result.Objeto != null)
             {
                 Select2DTO retorno = result.Objeto;
-                return Json(new { Total = retorno.Total, Results = retorno.Results }, JsonRequestBehavior.AllowGet);
+                return new JsonCamelCaseResult(new { Total = retorno.Total, Results = retorno.Results }, JsonRequestBehavior.AllowGet);
             }
             else
                 return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });

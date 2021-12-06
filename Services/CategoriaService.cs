@@ -53,7 +53,6 @@ namespace Services
 
         public RespuestaService<Select2DTO> LlenarSelect2(string busqueda, int registrosPorPagina, int numeroPagina)
         {
-            object dataSalida = null;
             int cantidadRegistros = 0;
 
             IQueryable<CATEGORIA> consulta = (from a in _context.CATEGORIA select a);
@@ -63,15 +62,16 @@ namespace Services
 
             cantidadRegistros = consulta.Count();
             consulta.Skip((numeroPagina - 1) * registrosPorPagina).Take(registrosPorPagina);
-
-            List<CATEGORIA> lista = consulta.ToList();
-            dataSalida = lista.Select(a => new { id = a.CATEGORIA_ID, text = a.NOMBRE }).ToList();
+            List<Select2Detalle> dataSalida = consulta.Select(x => new Select2Detalle() { Id = (int) x.CATEGORIA_ID, Text = x.NOMBRE }).ToList();
 
             return new RespuestaService<Select2DTO>()
             {
-                Objeto = new Select2DTO() { Total = cantidadRegistros, Results = dataSalida }
+                Objeto = new Select2DTO() { 
+                    Total = cantidadRegistros, 
+                    Results = dataSalida 
+                }
             };
-        }
+        } 
 
         public RespuestaService<CATEGORIA> BuscarPorId(int id)
         {

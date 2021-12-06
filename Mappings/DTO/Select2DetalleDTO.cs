@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Mappings.DTO
 {
-    public class Select2DTO
+    public class Select2Detalle
     {
-        public int Total { get; set; }
-        public List<Select2Detalle> Results { get; set; }
-    } 
-
+        public int Id { get; set; }
+        public string Text { get; set; }
+    }
 }

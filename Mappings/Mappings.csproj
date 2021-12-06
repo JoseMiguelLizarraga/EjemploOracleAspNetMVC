@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="DTO\CategoriaDTO.cs" />
     <Compile Include="DTO\DataTableDTO.cs" />
+    <Compile Include="DTO\Select2DetalleDTO.cs" />
     <Compile Include="MapperDatabase.cs" />
     <Compile Include="MapperDTO.cs" />
     <Compile Include="DTO\ProductoDTO.cs" />

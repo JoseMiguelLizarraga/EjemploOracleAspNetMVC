@@ -171,8 +171,8 @@ const selectBuscador = (datos) =>
 			//==============================================>>>> ACA ESTA LO QUE DESCUADRA TODO  .. se soluciona agregando  select.style.width = "100%";  despues de cada evento del select
 
 			//console.log(data);
-			var resultados = data["Results"];
-			var totalRegistros = data["Total"];
+			var resultados = data["results"];     // data["Results"]
+			var totalRegistros = data["total"];   // data["Total"]
 			
 			if (resultados.length > 0)  // Si se recibieron registros
 			{
@@ -237,7 +237,7 @@ const selectBuscador = (datos) =>
 						// }
 					}
 
-					data["Results"].filter(c=> c.id != optionSeleccionado.value).forEach(c=> {   // Pone el resto de los options con excepcion del que ya estaba seleccionado
+					resultados.filter(c=> c.id != optionSeleccionado.value).forEach(c=> {   // Pone el resto de los options con excepcion del que ya estaba seleccionado
 						var option = document.createElement("option");
 						option.text = c["text"];
 						option.value = c["id"];
@@ -255,7 +255,7 @@ const selectBuscador = (datos) =>
 						}
 					}
 
-					data["Results"].forEach(c=> {
+					resultados.forEach(c=> {
 						var option = document.createElement("option");
 						option.text = c["text"];
 						option.value = c["id"];
@@ -268,7 +268,7 @@ const selectBuscador = (datos) =>
 			{
 				//select.textContent = "";    // Borra todos los options del select
 
-				data["Results"].forEach(c=> {
+				resultados.forEach(c=> {
 					var option = document.createElement("option");
 					option.text = c["text"];
 					option.value = c["id"];
