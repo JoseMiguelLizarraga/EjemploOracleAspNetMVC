@@ -30,6 +30,17 @@ namespace WebApp.Controllers
         }
 
         [HttpGet]
+        public ActionResult Listar()
+        {
+            RespuestaService<List<CATEGORIA>> result = _servicio.Listar();
+
+            if (result.Objeto != null)
+                return new JsonCamelCaseResult(result.Objeto.Select(Mapper.ToDTO).ToList(), JsonRequestBehavior.AllowGet);
+            else
+                return Json(new { status = result.ExcepcionCapturada.Status, error = result.ExcepcionCapturada.MensajeError });
+        }
+
+        [HttpGet]
         public ActionResult LlenarSelect2(string busqueda, int registrosPorPagina, int numeroPagina)
         {
             RespuestaService<Select2DTO> result = _servicio.LlenarSelect2(busqueda, registrosPorPagina, numeroPagina);

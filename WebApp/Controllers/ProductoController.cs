@@ -97,7 +97,7 @@ namespace WebApp.Controllers
         }
 
         [HttpPost]
-        public ActionResult GuardarFotoEditada(ProductoDTO producto)
+        public ActionResult AgregarFotoProducto(ProductoDTO producto)
         {
             // HttpPostedFileBase fotoProducto = Request.Files["fotoProducto"];   // Asi tambien se puede obtener la foto
             HttpPostedFileBase fotoProducto = producto.FotoProducto;
@@ -118,7 +118,7 @@ namespace WebApp.Controllers
                 string cadenaArchivo = $"{_rutaImagenes}/{producto.ProductoId}.{extensionArchivo}";
                 fotoProducto.SaveAs(cadenaArchivo);
 
-                _servicio.ActualizarFotoProducto(producto.ProductoId, extensionArchivo);
+                _servicio.AgregarFotoProducto(Convert.ToInt32(producto.ProductoId), extensionArchivo);
                 return Json(new { status = 200 });
             }
             catch (Exception ex)

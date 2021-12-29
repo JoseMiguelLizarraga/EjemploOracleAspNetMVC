@@ -178,6 +178,10 @@
       <Project>{b8788617-5ebc-43a3-9cea-052502ef083b}</Project>
       <Name>Mappings</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Repository\Repository.csproj">
+      <Project>{718c283b-f0f6-4ee8-b93c-8dd6cb1233be}</Project>
+      <Name>Repository</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Services\Services.csproj">
       <Project>{22f48c73-2d25-4d83-929f-a8ce7807acd8}</Project>
       <Name>Services</Name>

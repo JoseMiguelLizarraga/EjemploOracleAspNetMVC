@@ -1,6 +1,7 @@
 ﻿using DataAccess;
 using Mappings;
 using Mappings.DTO;
+using Repository;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,80 +14,63 @@ namespace Services
 {
     public class CategoriaService : ICategoriaService
     {
-        private Entities _context;
+        private readonly ICategoriaRepository _repositorio;
 
-        public CategoriaService()
+        public CategoriaService(ICategoriaRepository repositorio)
         {
-            _context = new Entities();
+            _repositorio = repositorio;
         }
 
         public RespuestaService<List<CATEGORIA>> Listar()
         {
-            return new RespuestaService<List<CATEGORIA>>() { Objeto = _context.CATEGORIA.ToList() };
+            var lista = _repositorio.Listar();
+            return new RespuestaService<List<CATEGORIA>>() { Objeto = lista };
         }
 
         public RespuestaService<DataTableDTO<CategoriaDTO>> LlenarDataTable(CATEGORIA categoria, int inicio, int registrosPorPagina)
         {
             if (categoria == null) categoria = new CATEGORIA();  // En caso de que sea nulo se inicializa 
 
-            IQueryable<CATEGORIA> v = (from a in _context.CATEGORIA
-                                       select a);
-
-            if (!string.IsNullOrEmpty(categoria.NOMBRE))
-                v = v.Where(a => a.NOMBRE.Contains(categoria.NOMBRE));
-
-            int totalRegistros = v.Count();
-            v = v.OrderBy(x => x.CATEGORIA_ID).Skip(inicio).Take(registrosPorPagina);
-
-            List<CATEGORIA> lista = v.ToList();
+            (List<CATEGORIA>, int) res = _repositorio.ListarConPaginacion(categoria, inicio, registrosPorPagina);
 
             return new RespuestaService<DataTableDTO<CategoriaDTO>>()
             {
                 Objeto = new DataTableDTO<CategoriaDTO>()
                 {
-                    RecordsFiltered = totalRegistros,
-                    RecordsTotal = totalRegistros,
-                    Data = lista.Select(Mapper.ToDTO).ToList()
+                    Data = res.Item1.Select(Mapper.ToDTO).ToList(),
+                    RecordsFiltered = res.Item2,
+                    RecordsTotal = res.Item2
                 }
             };
         }
 
         public RespuestaService<Select2DTO> LlenarSelect2(string busqueda, int registrosPorPagina, int numeroPagina)
         {
-            int cantidadRegistros = 0;
-
-            IQueryable<CATEGORIA> consulta = (from a in _context.CATEGORIA select a);
-
-            if (!string.IsNullOrEmpty(busqueda))
-                consulta = consulta.Where(a => a.NOMBRE.Contains(busqueda));
-
-            cantidadRegistros = consulta.Count();
-            consulta.Skip((numeroPagina - 1) * registrosPorPagina).Take(registrosPorPagina);
-            List<Select2Detalle> dataSalida = consulta.Select(x => new Select2Detalle() { Id = (int) x.CATEGORIA_ID, Text = x.NOMBRE }).ToList();
+            (IQueryable<CATEGORIA>, int) res = _repositorio.LlenarSelect2(busqueda, registrosPorPagina, numeroPagina);
+            List<Select2Detalle> dataSalida = res.Item1.Select(x => new Select2Detalle() { Id = (int)x.CATEGORIA_ID, Text = x.NOMBRE }).ToList();
 
             return new RespuestaService<Select2DTO>()
             {
-                Objeto = new Select2DTO() { 
-                    Total = cantidadRegistros, 
-                    Results = dataSalida 
+                Objeto = new Select2DTO()
+                {
+                    Total = res.Item2,
+                    Results = dataSalida
                 }
             };
         } 
 
         public RespuestaService<CATEGORIA> BuscarPorId(int id)
         {
-            CATEGORIA p = _context.CATEGORIA.FirstOrDefault(c => c.CATEGORIA_ID == id);
-            return new RespuestaService<CATEGORIA>() { Objeto = p };
+            var res = _repositorio.BuscarPorId(id);
+            return new RespuestaService<CATEGORIA>() { Objeto = res };
         }
 
         public RespuestaService<CATEGORIA> Guardar(CATEGORIA categoria)
         {
             try
             {
-                _context.CATEGORIA.Add(categoria);
-                _context.SaveChanges();
-
-                return new RespuestaService<CATEGORIA>() { Objeto = categoria };
+                var res = _repositorio.Guardar(categoria);
+                return new RespuestaService<CATEGORIA>() { Objeto = res };
             }
             catch (Exception ex)
             {
@@ -98,13 +82,8 @@ namespace Services
         {
             try
             {
-                CATEGORIA objeto = _context.CATEGORIA.FirstOrDefault(c => c.CATEGORIA_ID == categoria.CATEGORIA_ID);
-
-                objeto.NOMBRE = categoria.NOMBRE;
-
-                _context.Entry(objeto).State = EntityState.Modified;
-                _context.SaveChanges();
-                return new RespuestaService<CATEGORIA>() { Objeto = objeto };
+                var res = _repositorio.Actualizar(categoria);
+                return new RespuestaService<CATEGORIA>() { Objeto = res };
             }
             catch (Exception ex)
             {
@@ -116,15 +95,8 @@ namespace Services
         {
             try
             {
-                CATEGORIA p = _context.CATEGORIA.FirstOrDefault(c => c.CATEGORIA_ID == id);
-
-                _context.PRODUCTO.Where(c => c.CATEGORIA_ID == id).ToList().ForEach(producto => {
-                    _context.Entry(producto).State = EntityState.Deleted;
-                });
-
-                _context.Entry(p).State = EntityState.Deleted;
-                _context.SaveChanges();
-                return new RespuestaService<bool>() { EsValido = true };
+                var res = _repositorio.Eliminar(id);
+                return new RespuestaService<bool>() { EsValido = res };
             }
             catch (Exception ex)
             {
@@ -138,7 +110,7 @@ namespace Services
             {
                 foreach (CATEGORIA categoria in listaCategoria)
                 {
-                    _context.CATEGORIA_INSERTAR(categoria.NOMBRE);
+                    _repositorio.InsertarSP(categoria);
                 }
 
                 return new RespuestaService<bool>() { EsValido = true };

@@ -6,6 +6,7 @@ namespace WebApp.App_Start
     using System.Reflection;
     using System.Web.Mvc;
     using DataAccess;
+    using Repository;
     using Services;
     using SimpleInjector;
     using SimpleInjector.Integration.Web;
@@ -30,9 +31,12 @@ namespace WebApp.App_Start
      
         private static void InitializeContainer(Container container)
         {
-            // Inyeccion de dependencias
+            // Inyeccion de dependencias (Repositorios)
 
-            //container.Register<Entities, DbContext>(Lifestyle.Scoped);
+            container.Register<ICategoriaRepository, CategoriaRepository>(Lifestyle.Scoped);
+            container.Register<IProductoRepository, ProductoRepository>(Lifestyle.Scoped);
+
+            // Inyeccion de dependencias (Servicios)
 
             container.Register<ICategoriaService, CategoriaService>(Lifestyle.Scoped);
             container.Register<IProductoService, ProductoService>(Lifestyle.Scoped);

@@ -478,7 +478,7 @@
         let form = evento.target;           // document.querySelector("#modalSubirFoto form");
         let formData = new FormData(form);
 
-        await fetch("@Url.Action("GuardarFotoEditada", "Producto")", { body: formData, method: "POST" })
+        await fetch("@Url.Action("AgregarFotoProducto", "Producto")", { body: formData, method: "POST" })
         .then(response =>
         {
             if (response.ok)

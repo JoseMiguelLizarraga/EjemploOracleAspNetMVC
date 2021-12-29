@@ -12,7 +12,7 @@ namespace Services
         RespuestaService<PRODUCTO> Guardar(PRODUCTO producto);
         RespuestaService<PRODUCTO> Actualizar(PRODUCTO producto);
         RespuestaService<bool> Eliminar(int id);
-        void ActualizarFotoProducto(decimal productoId, string extensionArchivo);
+        void AgregarFotoProducto(int productoId, string extensionArchivo);
         bool EliminarFoto(int productoId);
     }
 }

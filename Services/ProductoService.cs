@@ -10,29 +10,31 @@ using Util;
 using Mappings.DTO;
 using Mappings;
 using System.Configuration;
+using Repository;
 
 namespace Services
 {
     public class ProductoService : IProductoService
     {
-        private Entities _context;
+        private readonly IProductoRepository _repositorio;
         private string _rutaImagenes;
 
-        public ProductoService()
+        public ProductoService(IProductoRepository repositorio)
         {
-            _context = new Entities();
+            _repositorio = repositorio;
             _rutaImagenes = ConfigurationManager.AppSettings["rutaImagenesProductos"];  // Se encuentra en el Web.config
         }
 
         public RespuestaService<PRODUCTO> BuscarPorId(int id)
         {
-            PRODUCTO p = _context.PRODUCTO.FirstOrDefault(c => c.PRODUCTO_ID == id);
-            return new RespuestaService<PRODUCTO>() { Objeto = p };
+            var res = _repositorio.BuscarPorId(id);
+            return new RespuestaService<PRODUCTO>() { Objeto = res };
         }
 
         public RespuestaService<List<PRODUCTO>> Listar()
         {
-            return new RespuestaService<List<PRODUCTO>>() { Objeto = _context.PRODUCTO.ToList() };
+            var res = _repositorio.Listar();
+            return new RespuestaService<List<PRODUCTO>>() { Objeto = res };
         }
 
         public RespuestaService<DataTableDTO<ProductoDTO>> LlenarDataTable(PRODUCTO producto, int inicio, int registrosPorPagina)
@@ -41,27 +43,15 @@ namespace Services
             {
                 if (producto == null) producto = new PRODUCTO();  // En caso de que sea nulo se inicializa 
 
-                IQueryable<PRODUCTO> v = (from a in _context.PRODUCTO
-                                          select a);
-
-                if (producto.CATEGORIA_ID != 0)
-                    v = v.Where(a => a.CATEGORIA_ID == producto.CATEGORIA_ID);
-
-                if (!string.IsNullOrEmpty(producto.NOMBRE_PRODUCTO))
-                    v = v.Where(a => a.NOMBRE_PRODUCTO.Contains(producto.NOMBRE_PRODUCTO));
-
-                int totalRegistros = v.Count();
-                v = v.OrderBy(x => x.PRODUCTO_ID).Skip(inicio).Take(registrosPorPagina);
-
-                List<PRODUCTO> lista = v.ToList();
+                (List<PRODUCTO>, int) res = _repositorio.ListarConPaginacion(producto, inicio, registrosPorPagina);
 
                 return new RespuestaService<DataTableDTO<ProductoDTO>>()
                 {
                     Objeto = new DataTableDTO<ProductoDTO>()
                     {
-                        RecordsFiltered = totalRegistros,
-                        RecordsTotal = totalRegistros,
-                        Data = lista.Select(Mapper.ToDTO).ToList()
+                        Data = res.Item1.Select(Mapper.ToDTO).ToList(),
+                        RecordsFiltered = res.Item2,
+                        RecordsTotal = res.Item2
                     }
                 };
             }
@@ -75,11 +65,8 @@ namespace Services
         {
             try
             {
-                ObjectParameter idGenerado = new ObjectParameter("id_generado", typeof(decimal));
-                _context.PRODUCTO_INSERTAR(p.NOMBRE_PRODUCTO, p.PRECIO_PRODUCTO.ToString(), p.STOCK_PRODUCTO, null, p.CATEGORIA_ID, idGenerado);
-
-                p.PRODUCTO_ID = Convert.ToDecimal(idGenerado.Value);
-                return new RespuestaService<PRODUCTO>() { Objeto = p };
+                var res = _repositorio.Guardar(p);
+                return new RespuestaService<PRODUCTO>() { Objeto = res };
             }
             catch (Exception ex)
             {
@@ -91,8 +78,8 @@ namespace Services
         {
             try
             {
-                _context.PRODUCTO_ACTUALIZAR(p.PRODUCTO_ID, p.NOMBRE_PRODUCTO, p.PRECIO_PRODUCTO.ToString(), p.STOCK_PRODUCTO, p.CATEGORIA_ID);
-                return new RespuestaService<PRODUCTO>() { Objeto = p };
+                var res = _repositorio.Actualizar(p);
+                return new RespuestaService<PRODUCTO>() { Objeto = res };
             }
             catch (Exception ex)
             {
@@ -104,10 +91,10 @@ namespace Services
         {
             try
             {
-                PRODUCTO p = _context.PRODUCTO.FirstOrDefault(c => c.PRODUCTO_ID == id);
+                PRODUCTO p = _repositorio.BuscarPorId(id);
                 string Foto = p.IMAGEN_PRODUCTO;    // 20.png
 
-                _context.PRODUCTO_ELIMINAR(id);
+                _repositorio.Eliminar(id);
 
                 string rutaFoto = $"{_rutaImagenes}/{Foto}";  // C:\temp\20.png
 
@@ -122,25 +109,24 @@ namespace Services
             }
         }
 
-        public void ActualizarFotoProducto(decimal productoId, string extensionArchivo)
+        public void AgregarFotoProducto(int productoId, string extensionArchivo)
         {
-            PRODUCTO producto = _context.PRODUCTO.FirstOrDefault(c => c.PRODUCTO_ID == productoId);
-            producto.IMAGEN_PRODUCTO = $"{productoId}.png";
+            PRODUCTO producto = _repositorio.BuscarPorId(productoId);
+            producto.IMAGEN_PRODUCTO = $"{productoId}.{extensionArchivo}";
 
-            _context.Entry(producto).State = EntityState.Modified;
-            _context.SaveChanges();
+            _repositorio.ActualizarSinSP(producto);
         }
 
         public bool EliminarFoto(int productoId)
         {
             try
             {
-                PRODUCTO producto = _context.PRODUCTO.FirstOrDefault(c => c.PRODUCTO_ID == productoId);
+                PRODUCTO producto = _repositorio.BuscarPorId(productoId);
+
                 string foto = producto.IMAGEN_PRODUCTO;
                 producto.IMAGEN_PRODUCTO = null;
 
-                _context.Entry(producto).State = EntityState.Modified;
-                _context.SaveChanges();
+                _repositorio.ActualizarSinSP(producto);
 
                 string ruta = $"{_rutaImagenes}/{foto}";  // C:\temp\20.png
 
@@ -149,7 +135,7 @@ namespace Services
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
